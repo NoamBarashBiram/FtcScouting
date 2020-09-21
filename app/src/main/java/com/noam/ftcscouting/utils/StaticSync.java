@@ -5,27 +5,40 @@ import java.util.HashMap;
 
 public class StaticSync {
     private static long id = 0;
-    private static HashMap<Long, Notifiable> objects;
+    private static HashMap<Long, Notifiable> objects = new HashMap<>();
+    private static ArrayList<Object> queue = new ArrayList<>();
 
-    public synchronized void sync(final Object message){
+    public static synchronized void send(final Object message){
         for (Long id: objects.keySet()){
             final Notifiable object = objects.get(id);
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    object.onNotified(message);
-                }
-            }).start();
+            new Thread(() -> object.onNotified(message)).start();
         }
     }
 
-    public long register(Notifiable object){
+    public static void queue(Object message){
+        queue.add(message);
+    }
+
+    public static synchronized void sync(){
+        for (Object message: queue){
+            send(message);
+        }
+        queue.clear();
+    }
+
+    public static long register(Notifiable object){
         objects.put(++id, object);
         return id;
     }
 
-    public void unregister(Long id){
+    public static void unregister(Long id){
         objects.remove(id);
+    }
+
+    public static void unregisterAll(){
+        objects.clear();
+        queue.clear();
+        id = 0;
     }
 
     public interface Notifiable {

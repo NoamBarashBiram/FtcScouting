@@ -1,5 +1,19 @@
 <resources>
     <string name="app_name">Ftc Scouting</string>
-\    <string name="title_selfscoring">Self Scoring</string>
+    <string name="title_selfscoring">Self Scoring</string>
     <string name="title_events">Events</string>
+    <string name="title_activity_login">LoginActivity</string>
+    <!--
+    This string is used for square devices and overridden by hello_world in
+    values-round/strings.xml for round devices.
+    -->
+    <string name="hello_world">Hello Square World!</string>
+    <string name="email_key">email</string>
+    <string name="password_key">password</string>
+    <string name="crash_report_key">crashreport</string>
+    <string name="crashlytics_explanation">This app is using Crashlytics - a service that reports data about app crashes\nThis data is completely anonymous, does not contain any kind of personal data and used only to increase the app stability.\nDo you agree to the use of the service?</string>
+    <string name="pause">Pause</string>
+    <string name="start">Start</string>
+    <string name="reset">Reset</string>
+    <string name="resume">Resume</string>
 </resources>

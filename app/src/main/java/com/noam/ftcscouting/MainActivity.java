@@ -1,19 +1,41 @@
 package com.noam.ftcscouting;
 
+import android.app.AlertDialog;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
+import com.noam.ftcscouting.database.FirebaseHandler;
+import com.noam.ftcscouting.utils.StaticSync;
+import com.noam.ftcscouting.utils.Toaster;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
+import androidx.preference.PreferenceManager;
 
-public class MainActivity extends AppCompatActivity {
+import java.sql.Array;
+import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+public class MainActivity extends AppCompatActivity implements StaticSync.Notifiable {
+
+    public static String TAG = MainActivity.class.getSimpleName();
+    private long id;
+
+    private SharedPreferences preferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        id = StaticSync.register(this);
+        preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        askAboutCrashlytics();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         BottomNavigationView navView = findViewById(R.id.nav_view);
@@ -27,4 +49,67 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupWithNavController(navView, navController);
     }
 
+    private void askAboutCrashlytics() {
+        if (preferences.contains(getString(R.string.crash_report_key))) {
+            openLoginActivity();
+            FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(preferences.getBoolean(getString(R.string.crash_report_key), false));
+            Toaster.toast(this, preferences.getBoolean(getString(R.string.crash_report_key), false) ? "Using Crashlytics" : "Crashing Offff");
+            return;
+        }
+        AtomicBoolean enabled = new AtomicBoolean(false);
+        new AlertDialog.Builder(this)
+                .setTitle("Crashlytics")
+                .setMessage(R.string.crashlytics_explanation)
+                .setPositiveButton("I Agree", (dialogInterface, i) -> enabled.set(true))
+                .setNegativeButton("I Do Not", (d, w) -> {})
+                .setCancelable(false)
+                .setOnDismissListener(dialogInterface -> {
+                    preferences.edit()
+                            .putBoolean(
+                                    getString(R.string.crash_report_key),
+                                    enabled.get())
+                            .apply();
+                    FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(enabled.get());
+                    dialogInterface.cancel();
+                    openLoginActivity();
+                }).create().show();
+    }
+
+    public void openLoginActivity() {
+        final Intent loginActivity = new Intent(MainActivity.this, LoginActivity.class);
+        String empty = "";
+        String email = preferences.getString(getString(R.string.email_key), empty);
+        if (empty.equals(email)) {
+            startActivity(loginActivity);
+            return;
+        }
+        String password = preferences.getString(getString(R.string.password_key), empty);
+        if (empty.equals(password)) {
+            startActivity(loginActivity);
+        } else {
+            FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
+                    .addOnSuccessListener(result -> FirebaseHandler.openDataBase())
+                    .addOnFailureListener(ex -> {
+                        Toaster.toast(MainActivity.this, "Login Failed");
+                        startActivity(loginActivity);
+                    });
+        }
+    }
+
+    @Override
+    public void onNotified(Object message) {
+        if (message.equals(LoginActivity.LOGGED_IN)){
+            FirebaseHandler.openDataBase();
+        } else if (message.equals(FirebaseHandler.DATABASE_CLOSED)){
+            Toaster.toast(this, "There has been an error connecting to the database");
+        } else {
+            Log.e(TAG, message.toString());
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        StaticSync.unregisterAll();
+        super.onDestroy();
+    }
 }

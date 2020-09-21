@@ -2,6 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.noam.ftcscouting">
 
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_plantech"
@@ -9,6 +12,15 @@
         android:roundIcon="@drawable/ic_plantech"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+
+        <!--
+               Set to true if your app is Standalone, that is, it does not require the handheld
+               app to run.
+        -->
+
+        <activity
+            android:name=".LoginActivity"
+            android:label="@string/title_activity_login" />
 
         <meta-data
             android:name="firebase_crashlytics_collection_enabled"
