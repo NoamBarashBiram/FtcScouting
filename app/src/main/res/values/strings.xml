@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Ftc Scouting</string>
+\    <string name="title_selfscoring">Self Scoring</string>
+    <string name="title_events">Events</string>
+</resources>
