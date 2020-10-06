@@ -1,4 +1,4 @@
-package com.noam.ftcscouting.ui.SelfScoring;
+package com.noam.ftcscouting.ui.selfScoring;
 
 import android.graphics.Color;
 import android.media.MediaPlayer;
@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.Animation;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -33,31 +32,30 @@ public class SelfScoringFragment extends Fragment {
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        View root = inflater.inflate(R.layout.fragment_selfscoring, container, false);
+        View root = inflater.inflate(R.layout.fragment_self_scoring, container, false);
         start = root.findViewById(R.id.startTimer);
         stop = root.findViewById(R.id.stopTimer);
         timerText = root.findViewById(R.id.timerText);
+        start.setOnClickListener(this::startTimer);
+        stop.setOnClickListener(this::stopTimer);
         return root;
     }
 
-    @Nullable
     @Override
-    public Animation onCreateAnimation(int transit, boolean enter, int nextAnim) {
+    public void onCreate(@Nullable Bundle savedInstanceState) {
         timerThings = new ArrayList<TimerSection>() {{
             add(new TimerSection(R.raw.countdown,
                     3,
                     0,
                     ContextCompat.getColor(getContext(), R.color.colorPrimary)));
-            add(new TimerSection(R.raw.start, 2 * 60 + 30, 2 * 60, Color.WHITE));
+            add(new TimerSection(R.raw.start, 2 * 60 + 30, 2 * 60, Color.TRANSPARENT));
             add(new TimerSection(R.raw.pick_controllers_up, 5, 0, Color.YELLOW));
             add(new TimerSection(R.raw.tel_op_start, 3, 0, Color.RED));
-            add(new TimerSection(null, 2 * 60, 30, Color.WHITE));
+            add(new TimerSection(null, 2 * 60, 30, Color.TRANSPARENT));
             add(new TimerSection(R.raw.endgame, 30, 0, Color.LTGRAY));
-            add(new TimerSection(R.raw.end, 0, 0, Color.WHITE));
+            add(new TimerSection(R.raw.end, 0, 0, Color.TRANSPARENT));
         }};
-        start.setOnClickListener(this::startTimer);
-        stop.setOnClickListener(this::stopTimer);
-        return super.onCreateAnimation(transit, enter, nextAnim);
+        super.onCreate(savedInstanceState);
     }
 
     public void startTimer(View v) {

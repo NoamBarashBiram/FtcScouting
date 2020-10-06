@@ -7,13 +7,13 @@
 
     <fragment
         android:id="@+id/navigation_events"
-        android:name="com.noam.ftcscouting.ui.Events.EventsFragment"
+        android:name="com.noam.ftcscouting.ui.events.EventsFragment"
         android:label="@string/title_events"
         tools:layout="@layout/fragment_events" />
 
     <fragment
-        android:id="@+id/navigation_selfScoring"
-        android:name="com.noam.ftcscouting.ui.SelfScoring.SelfScoringFragment"
-        android:label="@string/title_selfscoring"
-        tools:layout="@layout/fragment_selfscoring" />
+        android:id="@+id/navigation_self_scoring"
+        android:name="com.noam.ftcscouting.ui.selfScoring.SelfScoringFragment"
+        android:label="@string/title_self_scoring"
+        tools:layout="@layout/fragment_self_scoring" />
 </navigation>

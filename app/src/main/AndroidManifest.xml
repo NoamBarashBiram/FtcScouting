@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.noam.ftcscouting">
+    package="com.noam.ftcscouting" >
 
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -11,16 +11,15 @@
         android:label="@string/app_name"
         android:roundIcon="@drawable/ic_plantech"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
-
-        <!--
-               Set to true if your app is Standalone, that is, it does not require the handheld
-               app to run.
-        -->
+        android:theme="@style/AppTheme" >
 
         <activity
             android:name=".LoginActivity"
             android:label="@string/title_activity_login" />
+
+        <activity
+            android:name=".EventActivity"
+            android:label="@string/title_activity_event" />
 
         <meta-data
             android:name="firebase_crashlytics_collection_enabled"
@@ -28,7 +27,7 @@
 
         <activity
             android:name=".MainActivity"
-            android:label="@string/app_name">
+            android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

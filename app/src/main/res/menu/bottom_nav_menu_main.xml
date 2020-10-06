@@ -7,7 +7,7 @@
         android:title="@string/title_events" />
 
     <item
-        android:id="@+id/navigation_selfScoring"
+        android:id="@+id/navigation_self_scoring"
         android:icon="@drawable/ic_score"
-        android:title="@string/title_selfscoring" />
+        android:title="@string/title_self_scoring" />
 </menu>
