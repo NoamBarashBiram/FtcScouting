@@ -39,6 +39,7 @@ public class RanksFragment extends Fragment implements StaticSync.Notifiable {
 
     private void updateUI() {
         getActivity().runOnUiThread(() -> {
+
         });
     }
 }

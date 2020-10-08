@@ -16,12 +16,10 @@
     <string name="start">Start</string>
     <string name="reset">Reset</string>
     <string name="resume">Resume</string>
-    <string name="title_activity_login2">LoginActivity2</string>
     <string name="prompt_email">Email</string>
     <string name="prompt_password">Password</string>
     <string name="action_sign_in">Sign in or register</string>
     <string name="action_sign_in_short">Sign in</string>
-    <string name="welcome">"Welcome !"</string>
     <string name="invalid_username">Not a valid username</string>
     <string name="invalid_password">Password must be >5 characters</string>
     <string name="login_failed">"Login failed"</string>
@@ -29,4 +27,6 @@
     <string name="title_teams">Teams</string>
     <string name="title_my_matches">My Matches</string>
     <string name="title_ranks">Ranks</string>
+    <string name="title_activity_matches">MatchesActivity</string>
+    <string name="loading">Loading…</string>
 </resources>

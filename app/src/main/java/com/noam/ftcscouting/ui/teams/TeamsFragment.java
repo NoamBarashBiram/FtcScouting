@@ -1,5 +1,6 @@
 package com.noam.ftcscouting.ui.teams;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,6 +15,7 @@ import androidx.fragment.app.Fragment;
 import com.google.firebase.database.DataSnapshot;
 import com.noam.ftcscouting.R;
 import com.noam.ftcscouting.database.FirebaseHandler;
+import com.noam.ftcscouting.MatchesActivity;
 import com.noam.ftcscouting.utils.StaticSync;
 
 import java.util.ArrayList;
@@ -23,7 +25,10 @@ import static com.noam.ftcscouting.database.FirebaseHandler.unFireKey;
 
 public class TeamsFragment extends Fragment implements StaticSync.Notifiable {
 
-    public static final String EXTRA_EVENT = "com.noam.ftcscouting.ui.myMatchesMyMatchesFragment.EXTRA_EVENT";
+    public static final String
+            EXTRA_EVENT = "com.noam.ftcscouting.ui.myMatchesMyMatchesFragment.EXTRA_EVENT",
+            EXTRA_TEAM_NAME = "EXTRA_TEAM_NAME";
+
     private static final String eventString = "Events";
     private static final int BTN_HEIGHT = 200, BTN_TXT_SIZE = 18;
     private String event;
@@ -102,6 +107,8 @@ public class TeamsFragment extends Fragment implements StaticSync.Notifiable {
                 params.setMargins(32, 16, 32, 16);
                 btn.setLayoutParams(params);
                 btn.setTextSize(BTN_TXT_SIZE);
+                int finalI = i;
+                btn.setOnClickListener(view -> openMatches(teams.get(finalI)));
                 leftColumn.addView(btn);
             }
             for (int i = 1; i < teams.size(); i += 2) {
@@ -115,8 +122,17 @@ public class TeamsFragment extends Fragment implements StaticSync.Notifiable {
                 params.setMargins(32, 16, 32, 16);
                 btn.setLayoutParams(params);
                 btn.setTextSize(BTN_TXT_SIZE);
+                int finalI = i;
+                btn.setOnClickListener(view -> openMatches(teams.get(finalI)));
                 rightColumn.addView(btn);
             }
         });
+    }
+
+    private void openMatches(String teamName) {
+        Intent intent = new Intent(getContext(), MatchesActivity.class);
+        intent.putExtra(EXTRA_EVENT, event);
+        intent.putExtra(EXTRA_TEAM_NAME, teamName);
+        startActivity(intent);
     }
 }

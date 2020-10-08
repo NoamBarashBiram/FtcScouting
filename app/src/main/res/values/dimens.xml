@@ -15,4 +15,5 @@
     -->
     <dimen name="inner_frame_layout_padding">5dp</dimen>
     <dimen name="full">16dp</dimen>
+    <dimen name="half">8dp</dimen>
 </resources>

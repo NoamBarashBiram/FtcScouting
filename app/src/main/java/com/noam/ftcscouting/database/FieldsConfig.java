@@ -3,13 +3,14 @@ package com.noam.ftcscouting.database;
 import android.util.Log;
 
 import com.google.firebase.database.DataSnapshot;
-import com.noam.ftcscouting.utils.StaticSync;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class FieldsConfig implements StaticSync.Notifiable {
+public class FieldsConfig {
+
+    public static final String TAG = "FieldsConfig";
     public static final String auto = "Autonomous";
     public static final String config = "config";
     public static final String matches = "matches";
@@ -20,22 +21,10 @@ public class FieldsConfig implements StaticSync.Notifiable {
             telOp = "TelOp",
             type = "type",
             unPlayed = "unplayed";
-    private final HashMap<Integer, Field>
-            autoFields = new HashMap<>(),
-            telOpFields = new HashMap<>();
 
-    @Override
-    public void onNotified(Object message) {
-        if (message instanceof ArrayList) {
-            ArrayList<String> realMessage = (ArrayList<String>) message;
-            if (config.equals(realMessage.get(0))) {
-                int lastIndex = realMessage.size() - 1;
-                if (FirebaseHandler.ADD.equals(realMessage.get(lastIndex))){
-
-                }
-            }
-        }
-    }
+    private final ArrayList<Field>
+            autoFields = new ArrayList<>(),
+            telOpFields = new ArrayList<>();
 
     public static class Field {
         public static final String
@@ -53,7 +42,7 @@ public class FieldsConfig implements StaticSync.Notifiable {
             STRING("str"),
             CHOICE("cho"),
             TITLE("tit"),
-            BOOLEAN("bol"),
+            BOOLEAN("bool"),
             UNKNOWN("???");
 
 
@@ -106,7 +95,6 @@ public class FieldsConfig implements StaticSync.Notifiable {
     }
 
     public static FieldsConfig readConfig(DataSnapshot configSnapshot) {
-        int indexInt;
         FieldsConfig fieldsConfig = new FieldsConfig();
         if (!configSnapshot.exists()) {
             return null;
@@ -123,25 +111,18 @@ public class FieldsConfig implements StaticSync.Notifiable {
             for (DataSnapshot fieldSnapshot : configSnapshot.child(fieldType).getChildren()) {
                 String index = fieldSnapshot.getKey();
                 if (!index.equals(placeholder)) {
-                    if (!index.matches("[0-9]+")) {
-                        indexInt = fieldsConfig.fields(fieldType).size();
-                        Log.e("Problem", "Non-Integer Index!");
-                    } else {
-                        indexInt = Integer.parseInt(index);
-                    }
-                    if (fieldsConfig.fields(fieldType).containsKey(indexInt)) {
-                        indexInt = fieldsConfig.fields(fieldType).size();
-                        Log.e("Problem", "Identical indexes!");
-                    }
                     if (!fieldSnapshot.hasChild(type)) {
+                        Log.e(TAG, "readConfig: No type for " + index);
                         return null;
                     }
                     if (!fieldSnapshot.hasChild(name)) {
+                        Log.e(TAG, "readConfig: No name for " + index);
                         return null;
                     }
                     String nameStr = fieldSnapshot.child(name).getValue(String.class);
                     Field.Type t = Field.Type.parse(fieldSnapshot.child(type).getValue(String.class));
                     if (t == Field.Type.UNKNOWN) {
+                        Log.e(TAG, "readConfig: Unknown type for " + index);
                         return null;
                     }
                     HashMap<String, String> attributes = new HashMap<>();
@@ -152,66 +133,35 @@ public class FieldsConfig implements StaticSync.Notifiable {
                     }
                     if (t == Field.Type.INTEGER) {
                         if (!attributes.containsKey(Field.max)) {
+                            Log.e(TAG, "readConfig: No max for " + index);
                             return null;
                         }
                         if (!attributes.containsKey(Field.min) || !attributes.containsKey(Field.score)) {
+                            Log.e(TAG, "readConfig: No score for " + index);
                             return null;
                         }
                         if (Integer.parseInt(attributes.get(Field.min)) >= Integer.parseInt(attributes.get(Field.max))) {
+                            Log.e(TAG, "readConfig: Min >= max in " + index);
                             return null;
                         }
                     } else if (t != Field.Type.CHOICE) {
                         if (t == Field.Type.BOOLEAN && !attributes.containsKey(Field.score)) {
+                            Log.e(TAG, "readConfig: No score for " + index);
                             return null;
                         }
                     } else if (!attributes.containsKey(Field.entries)) {
+                        Log.e(TAG, "readConfig: No Entries for " + index);
                         return null;
                     }
-                    fieldsConfig.fields(fieldType).put(indexInt, new Field(nameStr, t, attributes));
+                    fieldsConfig.fields(fieldType).add(new Field(nameStr, t, attributes));
                 }
             }
         }
-        StaticSync.register(fieldsConfig);
         return fieldsConfig;
     }
 
-    public Map<String, Object> getCleanAuto(int matchCount) {
-        HashMap<String, Object> result = new HashMap<>();
-        String defStr = mulStr(";", matchCount - 1) +
-                " ";
-        String defNum = mulStr("0;", matchCount - 1) +
-                "0";
-        for (Field f : autoFields.values()) {
-            if (f.type != Field.Type.TITLE) {
-                result.put(f.name, f.type == Field.Type.STRING ? defStr : defNum);
-            }
-        }
-        return result;
-    }
-
-    public Map<String, Object> getCleanTelOp(int matchCount) {
-        HashMap<String, Object> result = new HashMap<>();
-        String defStr = mulStr(";", matchCount - 1);
-        String defNum = mulStr("0;", matchCount - 1) +
-                "0";
-        for (Field f : telOpFields.values()) {
-            if (f.type != Field.Type.TITLE) {
-                result.put(f.name, f.type == Field.Type.STRING ? defStr : defNum);
-            }
-        }
-        return result;
-    }
-
-    private String mulStr(String s, int count) {
-        StringBuilder result = new StringBuilder();
-        for (int i = 0; i < count; i++) {
-            result.append(s);
-        }
-        return result.toString();
-    }
-
     public boolean hasAuto(String field) {
-        for (Field f : autoFields.values()) {
+        for (Field f : autoFields) {
             if (f.name.equals(field)) {
                 return true;
             }
@@ -220,7 +170,7 @@ public class FieldsConfig implements StaticSync.Notifiable {
     }
 
     public boolean hasTel(String field) {
-        for (Field f : telOpFields.values()) {
+        for (Field f : telOpFields) {
             if (f.name.equals(field)) {
                 return true;
             }
@@ -236,7 +186,7 @@ public class FieldsConfig implements StaticSync.Notifiable {
         return telOpFields.size();
     }
 
-    public HashMap<Integer, Field> fields(String fieldType) {
+    public ArrayList<Field> fields(String fieldType) {
         if (fieldType.equals(auto)) {
             return autoFields;
         }
@@ -246,16 +196,16 @@ public class FieldsConfig implements StaticSync.Notifiable {
         return null;
     }
 
-    public HashMap<Integer, Field> getAutoFields() {
+    public ArrayList<Field> getAutoFields() {
         return autoFields;
     }
 
-    public HashMap<Integer, Field> getTelOpFields() {
+    public ArrayList<Field> getTelOpFields() {
         return telOpFields;
     }
 
     public Field getAutoField(String key) {
-        for (Field f : autoFields.values()) {
+        for (Field f : autoFields) {
             if (f.name.equals(key)) {
                 return f;
             }
@@ -264,14 +214,14 @@ public class FieldsConfig implements StaticSync.Notifiable {
     }
 
     public Field getAutoField(int index) {
-        if (!autoFields.containsKey(index)) {
+        if (index >= autoFields.size()) {
             return null;
         }
         return autoFields.get(index);
     }
 
     public Field getTelOpField(String key) {
-        for (Field f : telOpFields.values()) {
+        for (Field f : telOpFields) {
             if (f.name.equals(key)) {
                 return f;
             }
@@ -280,7 +230,7 @@ public class FieldsConfig implements StaticSync.Notifiable {
     }
 
     public Field getTelOpField(int index) {
-        if (!telOpFields.containsKey(index)) {
+        if (index >= telOpFields.size()) {
             return null;
         }
         return telOpFields.get(index);

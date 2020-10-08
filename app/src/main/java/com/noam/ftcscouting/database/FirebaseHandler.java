@@ -21,7 +21,10 @@ public class FirebaseHandler {
     public static ArrayList<ArrayList<String>> silent = new ArrayList<>();
     public static FieldsConfig configuration = null;
 
+    public static final Object CONFIG_UPDATED = "CONFIG_HAS_BEEN_UPDATED";
+
     private static volatile boolean computing = false;
+    private static volatile boolean configUpdated = false;
     private static final Object lock = new Object();
 
     public static final Object DATABASE_OPENED = "DATABASE_IS_OPEN", DATABASE_CLOSED = "DATABASE_IS_CLOSED";
@@ -65,10 +68,17 @@ public class FirebaseHandler {
         changes.clear();
         iterate(new ArrayList<>(), snapshot, last);
         StaticSync.sync();
+        if (configUpdated){
+            StaticSync.send(CONFIG_UPDATED);
+            configuration = FieldsConfig.readConfig(snapshot.child(FieldsConfig.config));
+        }
         computing = false;
     }
 
     private static void iterate(ArrayList<String> path, DataSnapshot snapshot, DataSnapshot last) {
+        if (path.size() > 0 && path.get(0).equals("config")){
+            configUpdated = true;
+        }
         if (snapshot.hasChildren()) {
             for (DataSnapshot child : snapshot.getChildren()) {
                 ArrayList<String> tmp = new ArrayList<>(path);
