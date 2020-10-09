@@ -3,6 +3,7 @@ package com.noam.ftcscouting;
 import android.animation.Animator;
 import android.animation.ObjectAnimator;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -16,7 +17,9 @@ import com.noam.ftcscouting.ui.teams.TeamsFragment;
 import com.noam.ftcscouting.utils.StaticSync;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -37,7 +40,7 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
 
     private static final int
             disabledColor = 0xffcccccc,
-            fadeDurMS = 150;
+            fadeDurMS = 50;
     private static final float fadeOutAlpha = 0.3f;
     private static final long second = 1000, minute = 60 * second, fiftyFiveSeconds = 55 * second;
     private Timer timer = new Timer();
@@ -87,7 +90,6 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
         }
     };
 
-
     @Override
     protected void onStart() {
         super.onStart();
@@ -111,6 +113,7 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
                 .child("matches")
                 .getValue(String.class)
                 .split(";");
+        setTitle(FirebaseHandler.unFireKey(team));
 
         setContentView(R.layout.activity_matches);
 
@@ -129,15 +132,18 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
             acquireLock();
             holdsLock = true;
             mFragment.setHoldsLock(holdsLock);
+            animate();
         } else {
             holdsLock = false;
             mFragment.setHoldsLock(holdsLock);
+            animate();
             timer.schedule(new CustomTask(Task.CHECK), new Date(lockTime + second));
         }
     }
 
     private void acquireLock() {
         long time = System.currentTimeMillis();
+        FirebaseHandler.silent.add(Arrays.asList("Events", event, team, "LOCK"));
         FirebaseHandler.reference
                 .child("Events")
                 .child(event)
@@ -156,48 +162,63 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
                 .getValue(Long.class);
     }
 
-    public void previousMatch(View v) {
-        if (matchIndex <= 0) return;
-        matchIndex--;
-        if (kindNow == Kind.TelOp) {
-            kindNow = Kind.Auto;
+    private void animate(){
+        runOnUiThread(() -> animate(false, false));
+    }
+
+    private void animate(boolean animateMatch, boolean animateKind){
+        if (animateMatch) {
+            match.animate()
+                    .setDuration(fadeDurMS)
+                    .alpha(fadeOutAlpha)
+                    .setListener(updateUIWhenDone)
+                    .start();
+            if (animateKind){
+                kind.animate()
+                        .setDuration(fadeDurMS)
+                        .alpha(fadeOutAlpha)
+                        .start();
+            }
+        } else if (animateKind){
             kind.animate()
                     .setDuration(fadeDurMS)
                     .alpha(fadeOutAlpha)
+                    .setListener(updateUIWhenDone)
                     .start();
+        } else {
+            fragmentView.animate()
+                    .setDuration(fadeDurMS)
+                    .alpha(fadeOutAlpha)
+                    .setListener(updateUIWhenDone)
+                    .start();
+            return;
         }
-        match.animate()
-                .setDuration(fadeDurMS)
-                .alpha(fadeOutAlpha)
-                .setListener(updateUIWhenDone)
-                .start();
-
         fragmentView.animate()
                 .setDuration(fadeDurMS)
                 .alpha(fadeOutAlpha)
                 .start();
     }
 
+    public void previousMatch(View v) {
+        if (matchIndex <= 0) return;
+        matchIndex--;
+        boolean animateKind = false;
+        if (kindNow == Kind.TelOp) {
+            animateKind = true;
+            kindNow = Kind.Auto;
+        }
+        animate(true, animateKind);
+    }
+
     public void nextMatch(View v) {
         if (matchIndex >= matches.length - 1) return;
         matchIndex++;
+        boolean animateKind = false;
         if (kindNow == Kind.TelOp) {
+            animateKind = true;
             kindNow = Kind.Auto;
-            kind.animate()
-                    .setDuration(fadeDurMS)
-                    .alpha(fadeOutAlpha)
-                    .start();
         }
-        match.animate().
-                setDuration(fadeDurMS)
-                .alpha(fadeOutAlpha)
-                .setListener(updateUIWhenDone)
-                .start();
-
-        fragmentView.animate()
-                .setDuration(fadeDurMS)
-                .alpha(fadeOutAlpha)
-                .start();
+        animate(true, animateKind);
     }
 
     private void updateUI() {
@@ -225,11 +246,7 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
 
     public void switchKind(View v) {
         kindNow = kindNow == Kind.Auto ? Kind.TelOp : Kind.Auto;
-        kind.animate()
-                .alpha(fadeOutAlpha)
-                .setDuration(fadeDurMS)
-                .setListener(updateUIWhenDone)
-                .start();
+        animate(false, true);
     }
 
     @Override
@@ -247,6 +264,18 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
                     checkLock();
                 }
             }
+        }
+    }
+
+    public void save(View v) {
+        Map<String, Object> changes = mFragment.getChanges();
+        if (changes != null){
+            FirebaseHandler.reference
+                    .child(event)
+                    .child(team)
+                    .child(kindNow.val)
+                    .updateChildren(changes);
+        } else {
         }
     }
 

@@ -29,14 +29,14 @@ public class EventsFragment extends Fragment implements StaticSync.Notifiable {
 
     private static final String eventsString = "Events";
     private ArrayList<String> events = null;
-    private View root, loading;
+    private View loading;
     private LinearLayout rightColumn, leftColumn;
 
     private static final int BTN_HEIGHT = 200, BTN_TXT_SIZE = 18;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        root = inflater.inflate(R.layout.fragment_events, container, false);
+        View root = inflater.inflate(R.layout.fragment_events, container, false);
         rightColumn = root.findViewById(R.id.rightColumn);
         leftColumn = root.findViewById(R.id.leftColumn);
         loading = root.findViewById(R.id.loading);
@@ -55,7 +55,10 @@ public class EventsFragment extends Fragment implements StaticSync.Notifiable {
         if (FirebaseHandler.snapshot != null) {
             events = new ArrayList<>();
             for (DataSnapshot event : FirebaseHandler.snapshot.child(eventsString).getChildren()) {
-                events.add(event.getKey());
+                String eventName = event.getKey();
+                if (!eventName.equals(FirebaseHandler.selfScoringEventName)) {
+                    events.add(eventName);
+                }
             }
             updateUI();
         }
@@ -67,14 +70,20 @@ public class EventsFragment extends Fragment implements StaticSync.Notifiable {
             if (events == null) {
                 events = new ArrayList<>();
                 for (DataSnapshot event : FirebaseHandler.snapshot.child(eventsString).getChildren()) {
-                    events.add(event.getKey());
+                    String eventName = event.getKey();
+                    if (!eventName.equals(FirebaseHandler.selfScoringEventName)) {
+                        events.add(eventName);
+                    }
                 }
                 updateUI();
             }
             ArrayList<String> realMessage = (ArrayList<String>) message;
             if (eventsString.equals(realMessage.get(0)) && realMessage.size() == 3) {
                 if (FirebaseHandler.ADD.equals(realMessage.get(2))) {
-                    events.add(realMessage.get(1));
+                    String eventName = realMessage.get(1);
+                    if (!eventName.equals(FirebaseHandler.selfScoringEventName)) {
+                        events.add(eventName);
+                    }
                 } else if (FirebaseHandler.DEL.equals(realMessage.get(2))) {
                     events.remove(realMessage.get(1));
                 } else

@@ -18,7 +18,7 @@
 
     <TextView
         android:id="@+id/kind"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:gravity="center"
         android:onClick="switchKind"
@@ -26,7 +26,9 @@
         android:textSize="14sp"
         app:layout_constraintEnd_toEndOf="@id/match"
         app:layout_constraintStart_toStartOf="@id/match"
-        app:layout_constraintTop_toBottomOf="@id/match" />
+        app:layout_constraintTop_toBottomOf="@id/match"
+        app:layout_constraintWidth_percent="0.5"
+        app:layout_constraintWidth_min="130dp"/>
 
     <ImageView
         android:id="@+id/prev"
@@ -62,7 +64,8 @@
         app:backgroundTint="@color/colorPrimary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:maxImageSize="32dp" />
+        app:maxImageSize="32dp"
+        android:onClick="save"/>
 
     <ScrollView
         android:layout_width="0dp"

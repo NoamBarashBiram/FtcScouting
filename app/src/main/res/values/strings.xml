@@ -29,4 +29,6 @@
     <string name="title_ranks">Ranks</string>
     <string name="title_activity_matches">MatchesActivity</string>
     <string name="loading">Loading…</string>
+    <string name="plus">+</string>
+    <string name="minus">-</string>
 </resources>

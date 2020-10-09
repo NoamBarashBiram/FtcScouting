@@ -14,7 +14,9 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
+import com.noam.ftcscouting.MatchesFragment;
 import com.noam.ftcscouting.R;
+import com.noam.ftcscouting.database.FirebaseHandler;
 
 import java.util.ArrayList;
 import java.util.Timer;
@@ -29,6 +31,9 @@ public class SelfScoringFragment extends Fragment {
     private Timer timer;
     private MediaPlayer player = new MediaPlayer();
     private int timerSection = -1, time = 0;
+    private MatchesFragment mFragment;
+    private String teamName;
+    private boolean holdsLock;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -42,7 +47,32 @@ public class SelfScoringFragment extends Fragment {
     }
 
     @Override
+    public void onAttachFragment(@NonNull Fragment fragment) {
+        if (fragment instanceof MatchesFragment) {
+            mFragment = (MatchesFragment) fragment;
+            mFragment.init(FirebaseHandler.selfScoringEventName, teamName, 0, holdsLock, 0);
+        }
+        super.onAttachFragment(fragment);
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (timer == null)
+            timer = new Timer();
+        // checkLock();
+    }
+
+    @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
+        teamName = FirebaseHandler.snapshot
+                .child("Events")
+                .child(FirebaseHandler.selfScoringEventName)
+                .getChildren()
+                .iterator()
+                .next()
+                .getKey();
+        getActivity().setTitle(teamName);
         timerThings = new ArrayList<TimerSection>() {{
             add(new TimerSection(R.raw.countdown,
                     3,
@@ -63,8 +93,8 @@ public class SelfScoringFragment extends Fragment {
             playResumeTimer();
         } else if (isTimerPaused) {
             playResumeTimer();
-            stop.setText("Pause");
-            start.setText("Start");
+            stop.setText(R.string.pause);
+            start.setText(R.string.start);
         }
     }
 

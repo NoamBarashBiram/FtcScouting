@@ -12,15 +12,17 @@ import com.google.firebase.database.ValueEventListener;
 import com.noam.ftcscouting.utils.StaticSync;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class FirebaseHandler {
 
     public static DataSnapshot snapshot = null, last = null;
     public static ArrayList<ArrayList<String>> changes = new ArrayList<>();
     public static DatabaseReference reference;
-    public static ArrayList<ArrayList<String>> silent = new ArrayList<>();
+    public static ArrayList<List<String>> silent = new ArrayList<>();
     public static FieldsConfig configuration = null;
 
+    public static final String selfScoringEventName = "__SelfScoring__";
     public static final Object CONFIG_UPDATED = "CONFIG_HAS_BEEN_UPDATED";
 
     private static volatile boolean computing = false;
