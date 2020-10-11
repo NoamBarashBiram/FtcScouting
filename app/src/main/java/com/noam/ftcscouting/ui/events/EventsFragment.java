@@ -2,11 +2,15 @@ package com.noam.ftcscouting.ui.events;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
@@ -19,20 +23,25 @@ import com.noam.ftcscouting.R;
 import com.noam.ftcscouting.database.FirebaseHandler;
 import com.noam.ftcscouting.ui.teams.TeamsFragment;
 import com.noam.ftcscouting.utils.StaticSync;
+import com.noam.ftcscouting.utils.Toaster;
 
 import java.util.ArrayList;
+import java.util.function.Consumer;
+import java.util.regex.Pattern;
 
 import static com.noam.ftcscouting.database.FirebaseHandler.unFireKey;
 
 
-public class EventsFragment extends Fragment implements StaticSync.Notifiable {
+public class EventsFragment extends Fragment implements StaticSync.Notifiable, TextWatcher {
 
-    private static final String eventsString = "Events";
+    public static final String eventsString = "Events";
     private ArrayList<String> events = null;
-    private View loading;
+    private FrameLayout loading;
     private LinearLayout rightColumn, leftColumn;
 
     private static final int BTN_HEIGHT = 200, BTN_TXT_SIZE = 18;
+    private EditText searchView;
+    private String filter = ".*";
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -40,6 +49,8 @@ public class EventsFragment extends Fragment implements StaticSync.Notifiable {
         rightColumn = root.findViewById(R.id.rightColumn);
         leftColumn = root.findViewById(R.id.leftColumn);
         loading = root.findViewById(R.id.loading);
+        searchView = root.findViewById(R.id.search);
+        searchView.addTextChangedListener(this);
         return root;
     }
 
@@ -93,7 +104,7 @@ public class EventsFragment extends Fragment implements StaticSync.Notifiable {
         }
     }
 
-    private void openEvent(View v){
+    private void openEvent(View v) {
         Button btn = (Button) v;
         Intent i = new Intent(getContext(), EventActivity.class);
         i.putExtra(TeamsFragment.EXTRA_EVENT, FirebaseHandler.unFireKey(btn.getText()));
@@ -103,11 +114,17 @@ public class EventsFragment extends Fragment implements StaticSync.Notifiable {
     private void updateUI() {
         getActivity().runOnUiThread(() -> {
             loading.setVisibility(View.GONE);
+            searchView.setEnabled(true);
             rightColumn.removeAllViews();
             leftColumn.removeAllViews();
-            for (int i = 0; i < events.size(); i += 2) {
+            ArrayList<String> tempEvents = new ArrayList<>();
+            for (String event : events) {
+                if (event.toLowerCase().matches(filter))
+                    tempEvents.add(event);
+            }
+            for (int i = 0; i < tempEvents.size(); i += 2) {
                 Button btn = new Button(getContext());
-                btn.setText(unFireKey((events.get(i))));
+                btn.setText(unFireKey((tempEvents.get(i))));
                 LinearLayout.LayoutParams params =
                         new LinearLayout.LayoutParams(
                                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -119,9 +136,9 @@ public class EventsFragment extends Fragment implements StaticSync.Notifiable {
                 btn.setOnClickListener(this::openEvent);
                 leftColumn.addView(btn);
             }
-            for (int i = 1; i < events.size(); i += 2) {
+            for (int i = 1; i < tempEvents.size(); i += 2) {
                 Button btn = new Button(getContext());
-                btn.setText(unFireKey(events.get(i)));
+                btn.setText(unFireKey(tempEvents.get(i)));
                 LinearLayout.LayoutParams params =
                         new LinearLayout.LayoutParams(
                                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -133,6 +150,31 @@ public class EventsFragment extends Fragment implements StaticSync.Notifiable {
                 btn.setOnClickListener(this::openEvent);
                 rightColumn.addView(btn);
             }
+            if ((tempEvents.size() & 1) == 1) {
+                View spacer = new View(getContext());
+                LinearLayout.LayoutParams params =
+                        new LinearLayout.LayoutParams(
+                                ViewGroup.LayoutParams.MATCH_PARENT,
+                                BTN_HEIGHT
+                        );
+                params.setMargins(32, 16, 32, 16);
+                spacer.setLayoutParams(params);
+                rightColumn.addView(spacer);
+            }
         });
+    }
+
+    @Override
+    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+    }
+
+    @Override
+    public void onTextChanged(CharSequence s, int start, int before, int count) {
+        filter = ".*" + searchView.getText().toString().toLowerCase() + ".*";
+        updateUI();
+    }
+
+    @Override
+    public void afterTextChanged(Editable s) {
     }
 }

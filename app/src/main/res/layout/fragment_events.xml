@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     tools:context=".ui.events.EventsFragment">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <FrameLayout
         android:id="@+id/loading"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -14,25 +14,46 @@
         <ProgressBar
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            android:layout_gravity="center" />
 
         <View
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="#22000000" />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    </FrameLayout>
 
-    <ScrollView
+    <EditText
+        android:id="@+id/search"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginHorizontal="32dp"
+        android:layout_marginVertical="@dimen/full"
+        android:background="@drawable/search_bar_background"
+        android:enabled="false"
+        android:paddingStart="@dimen/full"
+        android:paddingEnd="50dp"
+        android:singleLine="true"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_marginEnd="@dimen/full"
+        android:src="@android:drawable/ic_menu_search"
+        app:layout_constraintBottom_toBottomOf="@id/search"
+        app:layout_constraintEnd_toEndOf="@id/search"
+        app:layout_constraintTop_toTopOf="@id/search" />
+
+    <ScrollView
+        android:id="@+id/eventsView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="@dimen/full"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toBottomOf="@id/search">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"

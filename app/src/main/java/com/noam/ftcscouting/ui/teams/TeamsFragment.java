@@ -2,10 +2,13 @@ package com.noam.ftcscouting.ui.teams;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
@@ -23,7 +26,7 @@ import java.util.ArrayList;
 import static com.noam.ftcscouting.database.FirebaseHandler.unFireKey;
 
 
-public class TeamsFragment extends Fragment implements StaticSync.Notifiable {
+public class TeamsFragment extends Fragment implements StaticSync.Notifiable, TextWatcher {
 
     public static final String
             EXTRA_EVENT = "com.noam.ftcscouting.ui.myMatchesMyMatchesFragment.EXTRA_EVENT",
@@ -35,12 +38,16 @@ public class TeamsFragment extends Fragment implements StaticSync.Notifiable {
     private ArrayList<String> teams = null;
     private View root;
     private LinearLayout rightColumn, leftColumn;
+    private EditText searchView;
+    private String filter = ".*";
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         root = inflater.inflate(R.layout.fragment_teams, container, false);
         rightColumn = root.findViewById(R.id.rightColumn);
         leftColumn = root.findViewById(R.id.leftColumn);
+        searchView = root.findViewById(R.id.search);
+        searchView.addTextChangedListener(this);
         return root;
     }
 
@@ -96,9 +103,14 @@ public class TeamsFragment extends Fragment implements StaticSync.Notifiable {
         getActivity().runOnUiThread(() -> {
             rightColumn.removeAllViews();
             leftColumn.removeAllViews();
-            for (int i = 0; i < teams.size(); i += 2) {
+            ArrayList<String> tempTeams = new ArrayList<>();
+            for (String team : teams) {
+                if (team.toLowerCase().matches(filter))
+                    tempTeams.add(team);
+            }
+            for (int i = 0; i < tempTeams.size(); i += 2) {
                 Button btn = new Button(getContext());
-                btn.setText(unFireKey(teams.get(i)));
+                btn.setText(unFireKey(tempTeams.get(i)));
                 LinearLayout.LayoutParams params =
                         new LinearLayout.LayoutParams(
                                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -111,9 +123,9 @@ public class TeamsFragment extends Fragment implements StaticSync.Notifiable {
                 btn.setOnClickListener(view -> openMatches(teams.get(finalI)));
                 leftColumn.addView(btn);
             }
-            for (int i = 1; i < teams.size(); i += 2) {
+            for (int i = 1; i < tempTeams.size(); i += 2) {
                 Button btn = new Button(getContext());
-                btn.setText(unFireKey(teams.get(i)));
+                btn.setText(unFireKey(tempTeams.get(i)));
                 LinearLayout.LayoutParams params =
                         new LinearLayout.LayoutParams(
                                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -126,6 +138,18 @@ public class TeamsFragment extends Fragment implements StaticSync.Notifiable {
                 btn.setOnClickListener(view -> openMatches(teams.get(finalI)));
                 rightColumn.addView(btn);
             }
+
+            if ((tempTeams.size() & 1) == 1) {
+                View spacer = new View(getContext());
+                LinearLayout.LayoutParams params =
+                        new LinearLayout.LayoutParams(
+                                ViewGroup.LayoutParams.MATCH_PARENT,
+                                BTN_HEIGHT
+                        );
+                params.setMargins(32, 16, 32, 16);
+                spacer.setLayoutParams(params);
+                rightColumn.addView(spacer);
+            }
         });
     }
 
@@ -134,5 +158,19 @@ public class TeamsFragment extends Fragment implements StaticSync.Notifiable {
         intent.putExtra(EXTRA_EVENT, event);
         intent.putExtra(EXTRA_TEAM_NAME, teamName);
         startActivity(intent);
+    }
+
+    @Override
+    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+    }
+
+    @Override
+    public void onTextChanged(CharSequence s, int start, int before, int count) {
+        filter = ".*" + searchView.getText().toString().toLowerCase() + ".*";
+        updateUI();
+    }
+
+    @Override
+    public void afterTextChanged(Editable s) {
     }
 }

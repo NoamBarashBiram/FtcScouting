@@ -11,10 +11,14 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.noam.ftcscouting.database.FieldsConfig;
 import com.noam.ftcscouting.database.FirebaseHandler;
+import com.noam.ftcscouting.ui.events.EventsFragment;
 import com.noam.ftcscouting.ui.teams.TeamsFragment;
 import com.noam.ftcscouting.utils.StaticSync;
+import com.noam.ftcscouting.utils.Toaster;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,6 +47,7 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
             fadeDurMS = 50;
     private static final float fadeOutAlpha = 0.3f;
     private static final long second = 1000, minute = 60 * second, fiftyFiveSeconds = 55 * second;
+    private Long lockLasts = null;
     private Timer timer = new Timer();
 
     @Override
@@ -134,10 +139,14 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
             mFragment.setHoldsLock(holdsLock);
             animate();
         } else {
+            if (lockTime.equals(lockLasts)){
+                return;
+            }
             holdsLock = false;
             mFragment.setHoldsLock(holdsLock);
             animate();
             timer.schedule(new CustomTask(Task.CHECK), new Date(lockTime + second));
+            lockLasts = null;
         }
     }
 
@@ -150,6 +159,7 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
                 .child(team)
                 .child("LOCK")
                 .setValue(time + minute);
+        lockLasts = time + minute;
         timer.schedule(new CustomTask(Task.ACQUIRE), new Date(time + fiftyFiveSeconds));
     }
 
@@ -255,6 +265,7 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
         if (message instanceof ArrayList) {
             ArrayList<String> realMessage = (ArrayList<String>) message;
             if (realMessage.size() >= 4) {
+                Log.d(TAG, "onNotified: " + realMessage.toString());
                 if (realMessage.get(0).equals("Events") &&
                         realMessage.get(1).equals(event) &&
                         realMessage.get(2).equals(team) &&
@@ -270,12 +281,15 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
     public void save(View v) {
         Map<String, Object> changes = mFragment.getChanges();
         if (changes != null){
+            Log.d(TAG, "save: " + changes.toString());
             FirebaseHandler.reference
+                    .child(EventsFragment.eventsString)
                     .child(event)
                     .child(team)
                     .child(kindNow.val)
-                    .updateChildren(changes);
-        } else {
+                    .updateChildren(changes)
+                    .addOnSuccessListener(aVoid -> Toaster.toast(this, "Saved"))
+            .addOnFailureListener(e -> Toaster.toast(this, e));
         }
     }
 
