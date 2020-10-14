@@ -34,16 +34,15 @@ public class TeamsFragment extends Fragment implements StaticSync.Notifiable, Te
 
     private static final String eventString = "Events";
     private static final int BTN_HEIGHT = 200, BTN_TXT_SIZE = 18;
-    private String event;
+    private String event; 
     private ArrayList<String> teams = null;
-    private View root;
     private LinearLayout rightColumn, leftColumn;
     private EditText searchView;
     private String filter = ".*";
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        root = inflater.inflate(R.layout.fragment_teams, container, false);
+        View root = inflater.inflate(R.layout.fragment_teams, container, false);
         rightColumn = root.findViewById(R.id.rightColumn);
         leftColumn = root.findViewById(R.id.leftColumn);
         searchView = root.findViewById(R.id.search);
@@ -166,7 +165,17 @@ public class TeamsFragment extends Fragment implements StaticSync.Notifiable, Te
 
     @Override
     public void onTextChanged(CharSequence s, int start, int before, int count) {
-        filter = ".*" + searchView.getText().toString().toLowerCase() + ".*";
+        filter = ".*" +
+                searchView.getText()
+                        .toString()
+                        .toLowerCase()
+                        .replace("*", "\\*")
+                        .replace(".", "\\.")
+                        .replace("[", "\\[")
+                        .replace("]", "\\]")
+                        .replace("{", "\\{")
+                        .replace("}", "\\}") +
+                ".*";
         updateUI();
     }
 

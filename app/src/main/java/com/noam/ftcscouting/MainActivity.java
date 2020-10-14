@@ -4,8 +4,9 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.FrameLayout;
 
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
@@ -21,7 +22,7 @@ import com.noam.ftcscouting.utils.Toaster;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class MainActivity extends AppCompatActivity implements StaticSync.Notifiable {
+public class MainActivity extends TitleSettableActivity implements StaticSync.Notifiable {
 
     public static String TAG = MainActivity.class.getSimpleName();
 
@@ -56,7 +57,8 @@ public class MainActivity extends AppCompatActivity implements StaticSync.Notifi
                 .setTitle("Crashlytics")
                 .setMessage(R.string.crashlytics_explanation)
                 .setPositiveButton("I Agree", (dialogInterface, i) -> enabled.set(true))
-                .setNegativeButton("I Do Not", (d, w) -> {})
+                .setNegativeButton("I Do Not", (d, w) -> {
+                })
                 .setCancelable(false)
                 .setOnDismissListener(dialogInterface -> {
                     preferences.edit()
@@ -93,7 +95,7 @@ public class MainActivity extends AppCompatActivity implements StaticSync.Notifi
 
     @Override
     public void onNotified(Object message) {
-        if (message.equals(LoginActivity.LOGGED_IN)){
+        if (message.equals(LoginActivity.LOGGED_IN)) {
             FirebaseHandler.openDataBase();
         } else if (message.equals(FirebaseHandler.DATABASE_CLOSED)) {
             Toaster.toast(this, "There has been an error connecting to the database");
@@ -104,5 +106,8 @@ public class MainActivity extends AppCompatActivity implements StaticSync.Notifi
     protected void onDestroy() {
         StaticSync.unregisterAll();
         super.onDestroy();
+    }
+
+    public void dummyClick(View view) {
     }
 }

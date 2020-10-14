@@ -5,6 +5,25 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <FrameLayout
+        android:elevation="25dp"
+        android:id="@+id/loading"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center" />
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:onClick="dummyClick"
+            android:background="#22000000" />
+
+    </FrameLayout>
+
     <ImageView
         android:id="@+id/first_ic"
         android:layout_width="match_parent"
@@ -25,6 +44,7 @@
         app:menu="@menu/bottom_nav_menu_main" />
 
     <fragment
+        android:elevation="25dp"
         android:id="@+id/nav_host_fragment"
         android:name="androidx.navigation.fragment.NavHostFragment"
         android:layout_width="match_parent"

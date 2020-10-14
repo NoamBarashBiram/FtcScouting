@@ -11,8 +11,12 @@ import com.noam.ftcscouting.R;
 
 public class HorizontalNumberPicker extends ConstraintLayout {
 
+    public static final String TAG = "HorizontalNumberPicker";
+
+    private OnValueChangeListener listener = null;
+
     private TextView mainView, plus, minus;
-    private int maxValue, minValue, value;
+    private int maxValue = 10, minValue = 0, value = 0;
 
     public HorizontalNumberPicker(@NonNull Context context) {
         super(context);
@@ -34,44 +38,24 @@ public class HorizontalNumberPicker extends ConstraintLayout {
     }
 
     public void setMinValue(String s) {
-        this.minValue =Integer. parseInt(s);
+        this.minValue = Integer.parseInt(s);
     }
 
-    public void setValue(String value) {
-        setValue(Integer.parseInt(value));
-    }
-
-    public void setValue(int value) {
-        this.value = value;
-        mainView.setText(String.valueOf(value));
-        if (value <= minValue){
-            minus.setEnabled(false);
-        } else {
-            minus.setEnabled(true);
-        }
-
-        if (value >= maxValue){
-            plus.setEnabled(false);
-        } else {
-            plus.setEnabled(true);
-        }
-    }
-
-    public void increment(){
+    public void increment() {
         if (maxValue > value)
             setValue(++value);
     }
 
-    public void decrement(){
+    public void decrement() {
         if (minValue < value)
             setValue(--value);
     }
 
-    public void increment(View v){
+    public void increment(View v) {
         increment();
     }
 
-    public void decrement(View v){
+    public void decrement(View v) {
         decrement();
     }
 
@@ -79,11 +63,55 @@ public class HorizontalNumberPicker extends ConstraintLayout {
     public void setEnabled(boolean enabled) {
         super.setEnabled(enabled);
         mainView.setEnabled(enabled);
-        minus.setEnabled(enabled);
-        plus.setEnabled(enabled);
+        if (value > minValue)
+            minus.setEnabled(enabled);
+
+        if (value < maxValue)
+            plus.setEnabled(enabled);
+    }
+
+    public void setOnValueChangeListener(OnValueChangeListener listener) {
+        this.listener = listener;
     }
 
     public int getValue() {
         return value;
+    }
+
+    public void setValue(String value) {
+        try {
+            setValue(Integer.parseInt(value));
+        } catch (NumberFormatException ignored) {
+            setValue(0);
+        }
+    }
+
+    public void setValue(int value) {
+        if (value < minValue || value > maxValue)
+            throw new IllegalArgumentException(
+                    "Value " + value + " is not in range " + minValue + ", " + maxValue
+            );
+
+        mainView.setText(String.valueOf(value));
+        if (value <= minValue) {
+            minus.setEnabled(false);
+        } else {
+            minus.setEnabled(true);
+        }
+
+        if (value >= maxValue) {
+            plus.setEnabled(false);
+        } else {
+            plus.setEnabled(true);
+        }
+
+        if (listener != null)
+            listener.onValueChange(this.value, value);
+
+        this.value = value;
+    }
+
+    public interface OnValueChangeListener {
+        void onValueChange(int oldVal, int newVal);
     }
 }

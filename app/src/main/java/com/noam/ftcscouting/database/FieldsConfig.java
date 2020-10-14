@@ -26,6 +26,8 @@ public class FieldsConfig {
             autoFields = new ArrayList<>(),
             telOpFields = new ArrayList<>();
 
+    public ArrayList<DependencyRule> dependencies = new ArrayList<>();
+
     public static class Field {
         public static final String
                 entries = "entries",
@@ -153,6 +155,12 @@ public class FieldsConfig {
                         Log.e(TAG, "readConfig: No Entries for " + index);
                         return null;
                     }
+                    String parentName = attributes.get(Field.dependency);
+                    if (parentName != null && !parentName.equals("")){
+                        char modeString = parentName.charAt(0);
+                        parentName = parentName.substring(1);
+                        fieldsConfig.dependencies.add(new DependencyRule(parentName, nameStr, modeString == '_'));
+                    }
                     fieldsConfig.fields(fieldType).add(new Field(nameStr, t, attributes));
                 }
             }
@@ -264,5 +272,16 @@ public class FieldsConfig {
             return getTelOpField(index);
         }
         return null;
+    }
+
+    public static final class DependencyRule {
+        public final String parent, dependent;
+        public final boolean mode;
+
+        public DependencyRule(String parent, String dependent, boolean mode){
+            this.parent = parent;
+            this.dependent = dependent;
+            this.mode = mode;
+        }
     }
 }

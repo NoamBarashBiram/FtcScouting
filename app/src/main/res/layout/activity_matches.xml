@@ -7,6 +7,7 @@
     tools:context=".MatchesActivity">
 
     <TextView
+        android:layout_margin="@dimen/half"
         android:id="@+id/match"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -15,20 +16,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/kind"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:onClick="switchKind"
-        android:padding="@dimen/half"
-        android:textSize="14sp"
-        app:layout_constraintEnd_toEndOf="@id/match"
-        app:layout_constraintStart_toStartOf="@id/match"
-        app:layout_constraintTop_toBottomOf="@id/match"
-        app:layout_constraintWidth_percent="0.5"
-        app:layout_constraintWidth_min="130dp"/>
 
     <ImageView
         android:id="@+id/prev"
@@ -56,26 +43,27 @@
         app:layout_constraintTop_toTopOf="@+id/match" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/save"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="@dimen/full"
+        android:layout_margin="@dimen/half"
         android:backgroundTint="@color/colorPrimary"
+        android:onClick="save"
         android:src="@android:drawable/ic_menu_save"
         app:backgroundTint="@color/colorPrimary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:maxImageSize="32dp"
-        android:onClick="save"/>
+        app:maxImageSize="32dp" />
 
     <ScrollView
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginHorizontal="@dimen/full"
-        android:layout_marginBottom="@dimen/full"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/save"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/kind">
+        android:layout_marginTop="@dimen/full"
+        app:layout_constraintTop_toBottomOf="@id/match">
 
         <fragment
             android:id="@+id/fragmentView"
@@ -84,5 +72,27 @@
             android:layout_height="wrap_content" />
 
     </ScrollView>
+
+    <TextView
+        android:onClick="togglePlayed"
+        android:layout_width="0dp"
+        app:layout_constraintStart_toEndOf="@id/played"
+        android:layout_height="wrap_content"
+        android:paddingStart="@dimen/full"
+        android:paddingEnd="0dp"
+        android:text="@string/was_match_played"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/played"
+        app:layout_constraintBottom_toBottomOf="@id/played" />
+
+    <CheckBox
+        android:onClick="togglePlayed"
+        android:id="@+id/played"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/full"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

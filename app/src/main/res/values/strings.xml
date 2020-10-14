@@ -31,4 +31,10 @@
     <string name="loading">Loading…</string>
     <string name="plus">+</string>
     <string name="minus">-</string>
+    <string name="auto_score">Autonomous:</string>
+    <string name="telop_score">TelOp: </string>
+    <string name="match_not_empty">Match is not empty</string>
+    <string name="match_not_played_verification_message">You asked to mark this match as a match that was not played even though you have just edited it\nAre you sure you want to mark this match as one that was not played?</string>
+    <string name="was_match_played">Was Match Played?</string>
+    <string name="self_scoring_disabled_msg">Self scoring is disabled \n\nPlease enable it via the admin application</string>
 </resources>

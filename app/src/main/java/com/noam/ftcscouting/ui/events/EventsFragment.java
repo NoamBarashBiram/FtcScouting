@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -34,7 +35,7 @@ import static com.noam.ftcscouting.database.FirebaseHandler.unFireKey;
 
 public class EventsFragment extends Fragment implements StaticSync.Notifiable, TextWatcher {
 
-    public static final String eventsString = "Events";
+    public static final String eventsString = "Events", TAG = "EventsFragment";
     private ArrayList<String> events = null;
     private FrameLayout loading;
     private LinearLayout rightColumn, leftColumn;
@@ -48,7 +49,6 @@ public class EventsFragment extends Fragment implements StaticSync.Notifiable, T
         View root = inflater.inflate(R.layout.fragment_events, container, false);
         rightColumn = root.findViewById(R.id.rightColumn);
         leftColumn = root.findViewById(R.id.leftColumn);
-        loading = root.findViewById(R.id.loading);
         searchView = root.findViewById(R.id.search);
         searchView.addTextChangedListener(this);
         return root;
@@ -79,6 +79,7 @@ public class EventsFragment extends Fragment implements StaticSync.Notifiable, T
     public void onNotified(Object message) {
         if (message instanceof ArrayList) {
             if (events == null) {
+                loading = getActivity().findViewById(R.id.loading);
                 events = new ArrayList<>();
                 for (DataSnapshot event : FirebaseHandler.snapshot.child(eventsString).getChildren()) {
                     String eventName = event.getKey();
@@ -113,7 +114,8 @@ public class EventsFragment extends Fragment implements StaticSync.Notifiable, T
 
     private void updateUI() {
         getActivity().runOnUiThread(() -> {
-            loading.setVisibility(View.GONE);
+            if (loading != null)
+                loading.setVisibility(View.GONE);
             searchView.setEnabled(true);
             rightColumn.removeAllViews();
             leftColumn.removeAllViews();
