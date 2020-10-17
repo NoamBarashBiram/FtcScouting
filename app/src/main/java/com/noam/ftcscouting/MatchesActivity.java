@@ -5,6 +5,7 @@ import android.animation.ObjectAnimator;
 import android.app.AlertDialog;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.ImageView;
@@ -15,6 +16,7 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
 import com.noam.ftcscouting.database.FieldsConfig;
 import com.noam.ftcscouting.database.FirebaseHandler;
@@ -59,19 +61,13 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
     private Timer timer = new Timer();
     private volatile boolean initialized = false, checkedLock = false, UIConstructed = false;
     private final Object lock = new Object();
-
-    @Override
-    public void onAttachFragment(@NonNull Fragment fragment) {
-        if (fragment instanceof MatchesFragment) {
-            mFragment = (MatchesFragment) fragment;
-            if (matches != null) { // initialization has completed before fragment attachment
-                mFragment.init(event, team, matchIndex, holdsLock, matches.length);
-                initialized = true;
-            }
-
+    private BaseTransientBottomBar.BaseCallback<Snackbar> snackCallback = new BaseTransientBottomBar.BaseCallback<Snackbar>() {
+        @Override
+        public void onDismissed(Snackbar transientBottomBar, int event) {
+            runOnUiThread(() -> saveBtn.animate().translationY(0).setDuration(100).start());
+            super.onDismissed(transientBottomBar, event);
         }
-        super.onAttachFragment(fragment);
-    }
+    };
 
     private Animator.AnimatorListener updateUIWhenDone = new Animator.AnimatorListener() {
         @Override
@@ -103,6 +99,20 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
 
         }
     };
+
+    @Override
+    public void onAttachFragment(@NonNull Fragment fragment) {
+        if (fragment instanceof MatchesFragment) {
+            mFragment = (MatchesFragment) fragment;
+            if (matches != null) { // initialization has completed before fragment attachment
+                mFragment.init(event, team, matchIndex, holdsLock, matches.length);
+                initialized = true;
+            }
+
+        }
+        super.onAttachFragment(fragment);
+    }
+
 
     @Override
     protected void onStart() {
@@ -354,19 +364,9 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
     }
 
     private void snackSave() {
-        Snackbar snack = Toaster.snack(root, "Saved");
         runOnUiThread(() -> saveBtn.animate().translationY(-128).setDuration(100).start());
-        final Object snackLock = new Object();
-        while (snack.isShown()){
-            synchronized (snackLock){
-                try {
-                    snackLock.wait(0, 1);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        runOnUiThread(() -> saveBtn.animate().translationY(0).setDuration(100).start());
+        Snackbar snack = Toaster.snack(root, "Saved");
+        snack.addCallback(snackCallback);
     }
 
     public void togglePlayed(View view) {

@@ -5,6 +5,7 @@ import android.os.Handler;
 import android.view.View;
 import android.widget.Toast;
 
+import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
 
 public class Toaster {
@@ -33,7 +34,8 @@ public class Toaster {
             }
             s.append(" ");
         }
-        Snackbar bar = Snackbar.make(mainView, s.toString(), Snackbar.LENGTH_LONG);
+        Snackbar bar = Snackbar.make(mainView, s.toString(), Snackbar.LENGTH_LONG)
+                .setAnimationMode(BaseTransientBottomBar.ANIMATION_MODE_FADE);
         bar.show();
         return bar;
     }
