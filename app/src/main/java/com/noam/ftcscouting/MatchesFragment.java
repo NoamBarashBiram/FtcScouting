@@ -2,9 +2,9 @@ package com.noam.ftcscouting;
 
 import android.app.Activity;
 import android.graphics.Color;
-import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.text.Layout;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
@@ -25,13 +25,17 @@ import androidx.fragment.app.Fragment;
 
 import com.noam.ftcscouting.database.FieldsConfig;
 import com.noam.ftcscouting.database.FirebaseHandler;
+import com.noam.ftcscouting.database.ScoreCalculator;
 import com.noam.ftcscouting.ui.views.DependableCheckBox;
 import com.noam.ftcscouting.ui.views.HorizontalNumberPicker;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import static com.noam.ftcscouting.ui.events.EventsFragment.eventsString;
 
 public class MatchesFragment extends Fragment {
 
@@ -48,8 +52,16 @@ public class MatchesFragment extends Fragment {
     private String event, team;
     private String[] kinds = new String[]{FieldsConfig.auto, FieldsConfig.telOp};
     private OnScoreChangeListener listener;
+    private ScoreCalculator calc;
 
     public int autoScore, telOpScore;
+    private volatile boolean constructedUI = false;
+    private final static List<FieldsConfig.Field.Type> scorableTypes =
+            Arrays.asList(
+                    FieldsConfig.Field.Type.BOOLEAN,
+                    FieldsConfig.Field.Type.INTEGER,
+                    FieldsConfig.Field.Type.TITLE
+            );
 
     public MatchesFragment() {
         // Required empty public constructor
@@ -78,9 +90,121 @@ public class MatchesFragment extends Fragment {
         this.matchIndex = matchIndex;
         this.enabled = enabled;
         this.matchesLen = matchesLen;
+        calc = new ScoreCalculator(event, team);
+    }
+
+    public void showAvg() {
+        runOnUiThread(() -> rootView.removeAllViews());  // clear view before UI construction
+        TextView title;
+        TextView dataView;
+
+        TextView example = new TextView(getContext());
+        example.setTextSize(18);
+        example.setText(R.string.avg_example);
+        example.setGravity(Gravity.CENTER_VERTICAL);
+        example.setTextColor(Color.BLACK);
+
+        rootView.addView(example);
+
+        for (String kind : kinds) {
+            TextView kindView = new TextView(getContext());
+            kindView.setTextSize(22);
+            kindView.setTextColor(Color.BLACK);
+            kindView.setTypeface(null, Typeface.BOLD);
+            kindView.setPaddingRelative(0, 16, 0, 8);
+
+            runOnUiThread(() -> rootView.addView(kindView));
+
+            float totalKind = 0;
+
+            for (FieldsConfig.Field field : FirebaseHandler.configuration.fields(kind)) {
+                if (!scorableTypes.contains(field.type))
+                    continue;
+
+                final LinearLayout fieldLayout = new LinearLayout(getContext());
+                fieldLayout.setOrientation(LinearLayout.HORIZONTAL);
+
+                title = new TextView(getContext());
+                title.setTextSize(18);
+                title.setText(field.name + ":");
+                title.setGravity(Gravity.CENTER_VERTICAL);
+                title.setTextColor(Color.BLACK);
+                dataView = null;
+
+                if (field.type == FieldsConfig.Field.Type.BOOLEAN) {
+                    float[] avg = calc.getAvg(kind, field.name);
+                    TextView text = new TextView(getContext());
+                    text.setText(String.format(getString(R.string.bool_avg_format), (int) (avg[0] * avg[2]), (int) avg[2], avg[1]));
+                    dataView = text;
+                    totalKind += avg[1];
+                } else if (field.type == FieldsConfig.Field.Type.INTEGER) {
+                    float[] avg = calc.getAvg(kind, field.name);
+                    TextView text = new TextView(getContext());
+                    text.setText(String.format(getString(R.string.int_avg_format), avg[0], avg[1]));
+                    dataView = text;
+                    totalKind += avg[1];
+                } else if (field.type == FieldsConfig.Field.Type.TITLE) {
+                    title.setTypeface(null, Typeface.BOLD);
+                    title.setTextSize(20);
+                    title.setPaddingRelative(0, 16, 0, 8);
+                }
+
+                title.setEnabled(enabled);
+                fieldLayout.addView(title);
+                if (dataView != null) {
+                    dataView.setPaddingRelative(16, 0, 0, 0);
+                    dataView.setTextSize(18);
+                    dataView.setTextColor(Color.BLACK);
+                    fieldLayout.addView(dataView);
+                }
+                runOnUiThread(() -> rootView.addView(fieldLayout));
+            }
+
+            kindView.setText(String.format(getString(R.string.avg_kind), kind, totalKind));
+        }
+        constructedUI = false;
     }
 
     public void updateUI() {
+        if (!constructedUI) {
+            constructUI();
+            constructedUI = true;
+        } else {
+            for (String kind : kinds) {
+                for (int i = 0; i < rootView.getChildCount(); i++){
+                    View child = rootView.getChildAt(i);
+                    if (child instanceof TextView){
+                        child.setEnabled(enabled);
+                        ((TextView) child).setTextColor(enabled ? Color.BLACK : 0xffcccccc);
+                    } else if (child instanceof ViewGroup){
+                        ViewGroup layout = (ViewGroup) child;
+                        for (int i2 = 0; i2 < layout.getChildCount(); i2++) {
+                            layout.getChildAt(i2).setEnabled(enabled);
+                        }
+                    }
+                }
+                for (Pair<String, ? extends View> pair : fieldObjects.get(kind)) {
+                    if (pair.second instanceof HorizontalNumberPicker) {
+                        ((HorizontalNumberPicker) pair.second).setValue(getValue(kind, pair.first));
+                    } else if (pair.second instanceof DependableCheckBox) {
+                        ((DependableCheckBox) pair.second).setChecked(getValue(kind, pair.first).equals("1"));
+                    } else if (pair.second instanceof EditText) {
+                        ((EditText) pair.second).setText(getValue(kind, pair.first));
+                    } else if (pair.second instanceof Spinner) {
+                        int entry = 0;
+                        try {
+                            entry = Integer.parseInt(getValue(kind, pair.first));
+                        } catch (NumberFormatException e) {
+                            Log.e(TAG, "updateUI: ", e);
+                        }
+                        ((Spinner) pair.second).setSelection(entry);
+                    }
+                }
+            }
+        }
+    }
+
+    private void constructUI() {
         runOnUiThread(() -> rootView.removeAllViews());  // clear view before UI construction
         TextView title;
         View dataView;
@@ -91,11 +215,9 @@ public class MatchesFragment extends Fragment {
             kindView.setText(kind);
             kindView.setTextSize(22);
             kindView.setGravity(Gravity.CENTER_VERTICAL);
-            if (enabled)
-                kindView.setTextColor(Color.BLACK);
+            kindView.setTextColor(enabled ? Color.BLACK : 0xffcccccc);
             kindView.setEnabled(enabled);
             kindView.setTypeface(null, Typeface.BOLD);
-            kindView.setPaintFlags(kindView.getPaintFlags());
             kindView.setPaddingRelative(0, 16, 0, 8);
 
             runOnUiThread(() -> rootView.addView(kindView));
@@ -107,8 +229,6 @@ public class MatchesFragment extends Fragment {
                 title.setText(field.name + ":");
                 title.setTextSize(18);
                 title.setGravity(Gravity.CENTER_VERTICAL);
-                if (enabled)
-                    title.setTextColor(Color.BLACK);
 
                 title.setEnabled(enabled);
 
@@ -116,7 +236,7 @@ public class MatchesFragment extends Fragment {
                     case TITLE:
                         // A title is bold and with underline. It also requires some space, above and below
                         title.setTypeface(null, Typeface.BOLD);
-                        title.setPaintFlags(title.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
+                        title.setTextSize(20);
                         fieldLayout.setPaddingRelative(0, 16, 0, 8);
                         break;
                     case STRING:
@@ -199,8 +319,8 @@ public class MatchesFragment extends Fragment {
 
             for (Pair<String, ? extends View> field : fieldObjects.get(kind)) {
                 if (FirebaseHandler.configuration.getField(kind, field.first).type ==
-                        FieldsConfig.Field.Type.BOOLEAN){
-                    for (FieldsConfig.DependencyRule rule: FirebaseHandler.configuration.dependencies){
+                        FieldsConfig.Field.Type.BOOLEAN) {
+                    for (FieldsConfig.DependencyRule rule : FirebaseHandler.configuration.dependencies.get(kind)) {
                         if (rule.parent.equals(field.first)) {
                             for (Pair<String, ? extends View> possibleDependent : fieldObjects.get(kind)) {
                                 if (possibleDependent.first.equals(rule.dependent)) {
@@ -234,7 +354,7 @@ public class MatchesFragment extends Fragment {
                     disabled = getValueNow(kind, dependency.substring(1)).equals("1") == (dependency.charAt(0) == '!');
                 }
                 if (!disabled) {
-                    int score = Integer.parseInt(field.get("score"));
+                    int score = Integer.parseInt(field.get(FieldsConfig.Field.score));
                     try {
                         score *= Integer.parseInt(getValue(pair.second));
                     } catch (NumberFormatException ignored) {
@@ -314,7 +434,7 @@ public class MatchesFragment extends Fragment {
 
     private String[] getValues(String kind, String field) {
         return FirebaseHandler.snapshot
-                .child("Events")
+                .child(eventsString)
                 .child(event)
                 .child(team)
                 .child(kind)

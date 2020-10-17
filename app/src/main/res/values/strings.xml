@@ -2,7 +2,7 @@
     <string name="app_name">Ftc Scouting</string>
     <string name="title_self_scoring">Self Scoring</string>
     <string name="title_events">Events</string>
-    <string name="title_activity_login">LoginActivity</string>
+    <string name="title_activity_login">Login</string>
     <!--
     This string is used for square devices and overridden by hello_world in
     values-round/strings.xml for round devices.
@@ -37,4 +37,9 @@
     <string name="match_not_played_verification_message">You asked to mark this match as a match that was not played even though you have just edited it\nAre you sure you want to mark this match as one that was not played?</string>
     <string name="was_match_played">Was Match Played?</string>
     <string name="self_scoring_disabled_msg">Self scoring is disabled \n\nPlease enable it via the admin application</string>
+    <string name="bool_avg_format">%d/%d, %.2f</string>
+    <string name="int_avg_format">%.2f, %.2f</string>
+    <string name="avg_example">Field Name: AVG Value, AVG Score</string>
+    <string name="avg_kind">%s AVG Score- %.2f</string>
+    <string name="avarage">Average</string>
 </resources>

@@ -5,15 +5,17 @@ import android.animation.ObjectAnimator;
 import android.app.AlertDialog;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.snackbar.Snackbar;
 import com.noam.ftcscouting.database.FieldsConfig;
 import com.noam.ftcscouting.database.FirebaseHandler;
 import com.noam.ftcscouting.ui.teams.TeamsFragment;
@@ -23,7 +25,6 @@ import com.noam.ftcscouting.utils.Toaster;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -43,6 +44,8 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
     private String[] matches;
     private ImageView next, prev;
     private View fragmentView;
+    private ConstraintLayout root;
+    private FloatingActionButton saveBtn;
 
     private boolean played = true;
     private CheckBox playedCheckBox;
@@ -54,13 +57,17 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
     public static final long second = 1000, minute = 60 * second, fiftyFiveSeconds = 55 * second;
     private Long lockLasts = null;
     private Timer timer = new Timer();
+    private volatile boolean initialized = false, checkedLock = false, UIConstructed = false;
+    private final Object lock = new Object();
 
     @Override
     public void onAttachFragment(@NonNull Fragment fragment) {
         if (fragment instanceof MatchesFragment) {
             mFragment = (MatchesFragment) fragment;
-            if (matches != null) // initialization has completed before fragment attachment
+            if (matches != null) { // initialization has completed before fragment attachment
                 mFragment.init(event, team, matchIndex, holdsLock, matches.length);
+                initialized = true;
+            }
 
         }
         super.onAttachFragment(fragment);
@@ -108,7 +115,6 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_matches);
         new Thread(this::init).start(); // initialize everything in the background
     }
@@ -130,7 +136,6 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
 
         setTitle(FirebaseHandler.unFireKey(team));
 
-
         playedCheckBox = findViewById(R.id.played);
 
         playedCheckBox.setChecked(played);
@@ -139,11 +144,27 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
         prev = findViewById(R.id.prev);
         next = findViewById(R.id.next);
         fragmentView = findViewById(R.id.fragmentView);
+        root = findViewById(R.id.root);
+        saveBtn = findViewById(R.id.save);
 
-        if (mFragment != null) // fragment has already been attached
+        if (mFragment != null && !initialized) { // fragment has already been attached but not initialized
             mFragment.init(event, team, matchIndex, holdsLock, matches.length);
+            initialized = true;
+        }
 
-        updateUI();
+        while (!(checkedLock && initialized)) {
+            synchronized (lock) {
+                try {
+                    lock.wait(0, 1);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        runOnUiThread(this::updateUI);
+
+        UIConstructed = true;
     }
 
     private boolean isPlayed() {
@@ -154,8 +175,10 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
                 .child(FieldsConfig.unPlayed)
                 .getValue(String.class)
                 .split(";");
+
+        String matchStr = String.valueOf(matchIndex);
         for (String match : notPlayed) {
-            if (match.equals(String.valueOf(matchIndex))) {
+            if (match.equals(matchStr)) {
                 return false;
             }
         }
@@ -167,18 +190,21 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
         if (lockTime == null || lockTime < System.currentTimeMillis()) {
             acquireLock();
             holdsLock = true;
-            mFragment.setEnabled(holdsLock && played);
-            animate();
         } else {
             if (lockTime.equals(lockLasts)) {
                 return;
             }
             holdsLock = false;
-            mFragment.setEnabled(holdsLock && played);
-            animate();
             timer.schedule(new CustomTask(Task.CHECK), new Date(lockTime + second));
             lockLasts = null;
         }
+
+        if (mFragment != null) {
+            mFragment.setEnabled(holdsLock && played);
+            if (UIConstructed)
+                animate();
+        }
+        checkedLock = true;
     }
 
     private void acquireLock() {
@@ -229,13 +255,13 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
     }
 
     public void previousMatch(View v) {
-        if (matchIndex <= 0) return;
+        if (matchIndex == 0) return;
         matchIndex--;
         animate(true);
     }
 
     public void nextMatch(View v) {
-        if (matchIndex >= matches.length - 1) return;
+        if (matchIndex == matches.length) return;
         matchIndex++;
         animate(true);
     }
@@ -245,7 +271,6 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
         playedCheckBox.setChecked(played);
         mFragment.setMatchIndex(matchIndex);
         mFragment.setEnabled(holdsLock && played);
-        match.setText(matches[matchIndex]);
         if (matchIndex == 0) {
             prev.setEnabled(false);
             prev.setColorFilter(disabledColor);
@@ -254,14 +279,26 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
             prev.clearColorFilter();
         }
 
-        if (matchIndex == matches.length - 1) {
+        if (matchIndex == matches.length) {
             next.setEnabled(false);
             next.setColorFilter(disabledColor);
         } else {
             next.setEnabled(true);
             next.clearColorFilter();
         }
-        mFragment.updateUI();
+        if (matchIndex == matches.length) {
+            mFragment.showAvg();
+            match.setText(R.string.avarage);
+        } else {
+            mFragment.updateUI();
+            match.setText(matches[matchIndex]);
+        }
+
+        if (matchIndex == matches.length || "Scouting Pit".equals(matches[matchIndex])) {
+            playedCheckBox.setEnabled(false);
+        } else {
+            playedCheckBox.setEnabled(holdsLock);
+        }
     }
 
 
@@ -284,11 +321,13 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
     }
 
     public void save(View v) {
-        save(mFragment.getChanges(FieldsConfig.auto),
-                mFragment.getChanges(FieldsConfig.telOp));
+        if (matchIndex < matches.length)
+            save(mFragment.getChanges(FieldsConfig.auto),
+                    mFragment.getChanges(FieldsConfig.telOp));
     }
 
     public void save(Map<String, Object> autoChanges, Map<String, Object> telOpChanges) {
+        boolean changed = false;
         if (autoChanges != null) {
             FirebaseHandler.reference
                     .child(eventsString)
@@ -297,16 +336,37 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
                     .child(FieldsConfig.auto)
                     .updateChildren(autoChanges)
                     .addOnFailureListener(e -> Toaster.toast(this, e));
+            changed = true;
         }
         if (telOpChanges != null) {
             FirebaseHandler.reference
                     .child(eventsString)
                     .child(event)
                     .child(team)
-                    .child(FieldsConfig.auto)
+                    .child(FieldsConfig.telOp)
                     .updateChildren(telOpChanges)
                     .addOnFailureListener(e -> Toaster.toast(this, e));
+            changed = true;
         }
+
+        if (changed)
+            new Thread(this::snackSave).start();
+    }
+
+    private void snackSave() {
+        Snackbar snack = Toaster.snack(root, "Saved");
+        runOnUiThread(() -> saveBtn.animate().translationY(-128).setDuration(100).start());
+        final Object snackLock = new Object();
+        while (snack.isShown()){
+            synchronized (snackLock){
+                try {
+                    snackLock.wait(0, 1);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        runOnUiThread(() -> saveBtn.animate().translationY(0).setDuration(100).start());
     }
 
     public void togglePlayed(View view) {

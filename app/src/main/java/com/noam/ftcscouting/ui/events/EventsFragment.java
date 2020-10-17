@@ -4,8 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
-import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,11 +22,8 @@ import com.noam.ftcscouting.R;
 import com.noam.ftcscouting.database.FirebaseHandler;
 import com.noam.ftcscouting.ui.teams.TeamsFragment;
 import com.noam.ftcscouting.utils.StaticSync;
-import com.noam.ftcscouting.utils.Toaster;
 
 import java.util.ArrayList;
-import java.util.function.Consumer;
-import java.util.regex.Pattern;
 
 import static com.noam.ftcscouting.database.FirebaseHandler.unFireKey;
 
@@ -83,7 +78,7 @@ public class EventsFragment extends Fragment implements StaticSync.Notifiable, T
                 events = new ArrayList<>();
                 for (DataSnapshot event : FirebaseHandler.snapshot.child(eventsString).getChildren()) {
                     String eventName = event.getKey();
-                    if (!eventName.equals(FirebaseHandler.selfScoringEventName)) {
+                    if (!eventName.equals(FirebaseHandler.selfScoringEventName) && !events.contains(eventName)) {
                         events.add(eventName);
                     }
                 }
@@ -93,7 +88,7 @@ public class EventsFragment extends Fragment implements StaticSync.Notifiable, T
             if (eventsString.equals(realMessage.get(0)) && realMessage.size() == 3) {
                 if (FirebaseHandler.ADD.equals(realMessage.get(2))) {
                     String eventName = realMessage.get(1);
-                    if (!eventName.equals(FirebaseHandler.selfScoringEventName)) {
+                    if (!eventName.equals(FirebaseHandler.selfScoringEventName) && !events.contains(eventName)) {
                         events.add(eventName);
                     }
                 } else if (FirebaseHandler.DEL.equals(realMessage.get(2))) {

@@ -23,7 +23,7 @@ public class Toaster {
         );
     }
 
-    public static void snack(View mainView, Object... objects) {
+    public static Snackbar snack(View mainView, Object... objects) {
         StringBuilder s = new StringBuilder();
         for (Object object : objects) {
             if (object != null) {
@@ -33,6 +33,8 @@ public class Toaster {
             }
             s.append(" ");
         }
-        Snackbar.make(mainView, s.toString(), Snackbar.LENGTH_LONG).show();
+        Snackbar bar = Snackbar.make(mainView, s.toString(), Snackbar.LENGTH_LONG);
+        bar.show();
+        return bar;
     }
 }

@@ -17,6 +17,7 @@ public class DependableCheckBox extends AppCompatCheckBox {
     }
 
     public void addDependency(View dependent, boolean mode){
+        dependent.setEnabled(mode == isChecked());
         dependents.add(new Pair<>(dependent, mode));
     }
 

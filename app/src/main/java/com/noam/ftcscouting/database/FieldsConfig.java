@@ -2,6 +2,8 @@ package com.noam.ftcscouting.database;
 
 import android.util.Log;
 
+import androidx.annotation.StringDef;
+
 import com.google.firebase.database.DataSnapshot;
 
 import java.util.ArrayList;
@@ -17,6 +19,9 @@ public class FieldsConfig {
     public static final String name = "name";
     public static final String placeholder = "PLACEHOLDER_DO_NOT_TOUCH";
 
+    @StringDef({auto, telOp})
+    public @interface FieldKind {}
+
     public static final String
             telOp = "TelOp",
             type = "type",
@@ -26,7 +31,10 @@ public class FieldsConfig {
             autoFields = new ArrayList<>(),
             telOpFields = new ArrayList<>();
 
-    public ArrayList<DependencyRule> dependencies = new ArrayList<>();
+    public HashMap<String, ArrayList<DependencyRule>> dependencies = new HashMap<String, ArrayList<DependencyRule>>() {{
+        put(auto, new ArrayList<>());
+        put(telOp, new ArrayList<>());
+    }};
 
     public static class Field {
         public static final String
@@ -75,12 +83,6 @@ public class FieldsConfig {
             this.configurations = configurations;
         }
 
-        public Field(String name, Type type) {
-            this.name = name;
-            this.type = type;
-            this.configurations = new HashMap<>();
-        }
-
         public String get(String key) {
             if (configurations.containsKey(key)) {
                 return configurations.get(key);
@@ -102,15 +104,15 @@ public class FieldsConfig {
             return null;
         }
         String[] fieldsArr = {auto, telOp};
-        for (String fieldType : fieldsArr) {
-            if (!configSnapshot.hasChild(fieldType)) {
+        for (String fieldKind : fieldsArr) {
+            if (!configSnapshot.hasChild(fieldKind)) {
                 return null;
             }
-            DataSnapshot child = configSnapshot.child(fieldType);
+            DataSnapshot child = configSnapshot.child(fieldKind);
             if (!child.hasChild(placeholder)) {
                 return null;
             }
-            for (DataSnapshot fieldSnapshot : configSnapshot.child(fieldType).getChildren()) {
+            for (DataSnapshot fieldSnapshot : configSnapshot.child(fieldKind).getChildren()) {
                 String index = fieldSnapshot.getKey();
                 if (!index.equals(placeholder)) {
                     if (!fieldSnapshot.hasChild(type)) {
@@ -156,12 +158,12 @@ public class FieldsConfig {
                         return null;
                     }
                     String parentName = attributes.get(Field.dependency);
-                    if (parentName != null && !parentName.equals("")){
+                    if (parentName != null && !parentName.equals("")) {
                         char modeString = parentName.charAt(0);
                         parentName = parentName.substring(1);
-                        fieldsConfig.dependencies.add(new DependencyRule(parentName, nameStr, modeString == '_'));
+                        fieldsConfig.dependencies.get(fieldKind).add(new DependencyRule(parentName, nameStr, modeString == '_'));
                     }
-                    fieldsConfig.fields(fieldType).add(new Field(nameStr, t, attributes));
+                    fieldsConfig.fields(fieldKind).add(new Field(nameStr, t, attributes));
                 }
             }
         }
@@ -194,7 +196,7 @@ public class FieldsConfig {
         return telOpFields.size();
     }
 
-    public ArrayList<Field> fields(String fieldType) {
+    public ArrayList<Field> fields(@FieldKind String fieldType) {
         if (fieldType.equals(auto)) {
             return autoFields;
         }
@@ -244,7 +246,7 @@ public class FieldsConfig {
         return telOpFields.get(index);
     }
 
-    public boolean hasField(String fieldKind, String key) {
+    public boolean hasField(@FieldKind String fieldKind, String key) {
         if (auto.equals(fieldKind)) {
             return hasAuto(key);
         }
@@ -254,7 +256,7 @@ public class FieldsConfig {
         return false;
     }
 
-    public Field getField(String fieldKind, String key) {
+    public Field getField(@FieldKind String fieldKind, String key) {
         if (auto.equals(fieldKind)) {
             return getAutoField(key);
         }
@@ -264,7 +266,7 @@ public class FieldsConfig {
         return null;
     }
 
-    public Field getField(String fieldKind, int index) {
+    public Field getField(@FieldKind String fieldKind, int index) {
         if (auto.equals(fieldKind)) {
             return getAutoField(index);
         }
@@ -278,7 +280,7 @@ public class FieldsConfig {
         public final String parent, dependent;
         public final boolean mode;
 
-        public DependencyRule(String parent, String dependent, boolean mode){
+        public DependencyRule(String parent, String dependent, boolean mode) {
             this.parent = parent;
             this.dependent = dependent;
             this.mode = mode;
