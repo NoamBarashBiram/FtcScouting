@@ -13,27 +13,31 @@ import java.util.Map;
 public class FieldsConfig {
 
     public static final String TAG = "FieldsConfig";
-    public static final String auto = "Autonomous";
-    public static final String config = "config";
-    public static final String matches = "matches";
-    public static final String name = "name";
-    public static final String placeholder = "PLACEHOLDER_DO_NOT_TOUCH";
-
-    @StringDef({auto, telOp})
-    public @interface FieldKind {}
-
-    public static final String
+    public static final String auto = "Autonomous",
             telOp = "TelOp",
+            penalty = "Penalty",
             type = "type",
-            unPlayed = "unplayed";
+            unPlayed = "unplayed",
+            config = "config",
+            matches = "matches",
+            name = "name",
+            placeholder = "PLACEHOLDER_DO_NOT_TOUCH";
+
+    public static final String[] kinds = new String[]{auto, telOp, penalty};
+
+    @StringDef({auto, telOp, penalty})
+    public @interface FieldKind {
+    }
 
     private final ArrayList<Field>
             autoFields = new ArrayList<>(),
-            telOpFields = new ArrayList<>();
+            telOpFields = new ArrayList<>(),
+            penaltyFields = new ArrayList<>();
 
     public HashMap<String, ArrayList<DependencyRule>> dependencies = new HashMap<String, ArrayList<DependencyRule>>() {{
         put(auto, new ArrayList<>());
         put(telOp, new ArrayList<>());
+        put(penalty, new ArrayList<>());
     }};
 
     public static class Field {
@@ -42,7 +46,8 @@ public class FieldsConfig {
                 max = "max",
                 min = "min",
                 score = "score",
-                dependency = "dependency";
+                dependency = "dependency",
+                step = "step";
         private final Map<String, String> configurations;
         public final String name;
         public final Type type;
@@ -101,15 +106,17 @@ public class FieldsConfig {
     public static FieldsConfig readConfig(DataSnapshot configSnapshot) {
         FieldsConfig fieldsConfig = new FieldsConfig();
         if (!configSnapshot.exists()) {
+            Log.e(TAG, "readConfig: Config does not exist");
             return null;
         }
-        String[] fieldsArr = {auto, telOp};
-        for (String fieldKind : fieldsArr) {
+        for (String fieldKind : kinds) {
             if (!configSnapshot.hasChild(fieldKind)) {
+                Log.e(TAG, "readConfig: No Kind " + fieldKind);
                 return null;
             }
             DataSnapshot child = configSnapshot.child(fieldKind);
             if (!child.hasChild(placeholder)) {
+                Log.e(TAG, "readConfig: No Placeholder for " + fieldKind);
                 return null;
             }
             for (DataSnapshot fieldSnapshot : configSnapshot.child(fieldKind).getChildren()) {
@@ -170,48 +177,18 @@ public class FieldsConfig {
         return fieldsConfig;
     }
 
-    public boolean hasAuto(String field) {
-        for (Field f : autoFields) {
-            if (f.name.equals(field)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public boolean hasTel(String field) {
-        for (Field f : telOpFields) {
-            if (f.name.equals(field)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public int autoSize() {
-        return autoFields.size();
-    }
-
-    public int telOpSize() {
-        return telOpFields.size();
-    }
-
     public ArrayList<Field> fields(@FieldKind String fieldType) {
-        if (fieldType.equals(auto)) {
+        if (auto.equals(fieldType)) {
             return autoFields;
         }
-        if (fieldType.equals(telOp)) {
+        if (telOp.equals(fieldType)) {
             return telOpFields;
         }
+        if (penalty.equals(fieldType)) {
+            return penaltyFields;
+        }
+
         return null;
-    }
-
-    public ArrayList<Field> getAutoFields() {
-        return autoFields;
-    }
-
-    public ArrayList<Field> getTelOpFields() {
-        return telOpFields;
     }
 
     public Field getAutoField(String key) {
@@ -246,14 +223,20 @@ public class FieldsConfig {
         return telOpFields.get(index);
     }
 
-    public boolean hasField(@FieldKind String fieldKind, String key) {
-        if (auto.equals(fieldKind)) {
-            return hasAuto(key);
+    public Field getPenaltyField(String key) {
+        for (Field f : penaltyFields) {
+            if (f.name.equals(key)) {
+                return f;
+            }
         }
-        if (telOp.equals(fieldKind)) {
-            return hasTel(key);
+        return null;
+    }
+
+    public Field getPenaltyField(int index) {
+        if (index >= autoFields.size()) {
+            return null;
         }
-        return false;
+        return autoFields.get(index);
     }
 
     public Field getField(@FieldKind String fieldKind, String key) {
@@ -262,6 +245,10 @@ public class FieldsConfig {
         }
         if (telOp.equals(fieldKind)) {
             return getTelOpField(key);
+        }
+
+        if (penalty.equals(fieldKind)) {
+            return getPenaltyField(key);
         }
         return null;
     }
@@ -272,6 +259,9 @@ public class FieldsConfig {
         }
         if (telOp.equals(fieldKind)) {
             return getTelOpField(index);
+        }
+        if (penalty.equals(fieldKind)) {
+            return getPenaltyField(index);
         }
         return null;
     }

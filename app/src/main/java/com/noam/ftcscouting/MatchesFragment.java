@@ -45,11 +45,11 @@ public class MatchesFragment extends Fragment {
             new HashMap<String, ArrayList<Pair<String, ? extends View>>>() {{
                 put(FieldsConfig.auto, new ArrayList<>());
                 put(FieldsConfig.telOp, new ArrayList<>());
+                put(FieldsConfig.penalty, new ArrayList<>());
             }};
     private volatile boolean enabled = false;
     private LinearLayout rootView;
     private String event, team;
-    private static final String[] kinds = new String[]{FieldsConfig.auto, FieldsConfig.telOp};
     private OnScoreChangeListener listener;
     private ScoreCalculator calc;
 
@@ -105,7 +105,7 @@ public class MatchesFragment extends Fragment {
 
         rootView.addView(example);
 
-        for (String kind : kinds) {
+        for (String kind : FieldsConfig.kinds) {
             TextView kindView = new TextView(getContext());
             kindView.setTextSize(22);
             kindView.setTextColor(Color.BLACK);
@@ -169,13 +169,13 @@ public class MatchesFragment extends Fragment {
             constructUI();
             constructedUI = true;
         } else {
-            for (String kind : kinds) {
-                for (int i = 0; i < rootView.getChildCount(); i++){
+            for (String kind : FieldsConfig.kinds) {
+                for (int i = 0; i < rootView.getChildCount(); i++) {
                     View child = rootView.getChildAt(i);
-                    if (child instanceof TextView){
+                    if (child instanceof TextView) {
                         child.setEnabled(enabled);
                         ((TextView) child).setTextColor(enabled ? Color.BLACK : 0xffcccccc);
-                    } else if (child instanceof ViewGroup){
+                    } else if (child instanceof ViewGroup) {
                         ViewGroup layout = (ViewGroup) child;
                         for (int i2 = 0; i2 < layout.getChildCount(); i2++) {
                             layout.getChildAt(i2).setEnabled(enabled);
@@ -184,7 +184,7 @@ public class MatchesFragment extends Fragment {
                 }
                 for (Pair<String, ? extends View> pair : fieldObjects.get(kind)) {
                     if (pair.second instanceof HorizontalNumberPicker) {
-                        ((HorizontalNumberPicker) pair.second).setValue(getValue(kind, pair.first));
+                        runOnUiThread(() -> ((HorizontalNumberPicker) pair.second).setValue(getValue(kind, pair.first)));
                     } else if (pair.second instanceof DependableCheckBox) {
                         ((DependableCheckBox) pair.second).setChecked(getValue(kind, pair.first).equals("1"));
                     } else if (pair.second instanceof EditText) {
@@ -208,7 +208,7 @@ public class MatchesFragment extends Fragment {
         TextView title;
         View dataView;
         ConstraintSet constraintSet;
-        for (String kind : kinds) {
+        for (String kind : FieldsConfig.kinds) {
             fieldObjects.get(kind).clear();
             TextView kindView = new TextView(getContext());
             kindView.setText(kind);
@@ -278,6 +278,7 @@ public class MatchesFragment extends Fragment {
                         picker.setMaxValue(field.get(FieldsConfig.Field.max));
                         picker.setMinValue(field.get(FieldsConfig.Field.min));
                         picker.setValue(getValue(kind, field.name));
+                        picker.setStep(field.get(FieldsConfig.Field.step));
 
                         if (listener != null) {
                             picker.setOnValueChangeListener((oldVal, newVal) -> computeScore());
@@ -340,8 +341,9 @@ public class MatchesFragment extends Fragment {
         Map<String, Integer> scores = new HashMap<String, Integer>() {{
             put(FieldsConfig.auto, 0);
             put(FieldsConfig.telOp, 0);
+            put(FieldsConfig.penalty, 0);
         }};
-        for (String kind : kinds) {
+        for (String kind : FieldsConfig.kinds) {
             for (Pair<String, ? extends View> pair : fieldObjects.get(kind)) {
                 FieldsConfig.Field field = FirebaseHandler.configuration.getField(kind, pair.first);
                 if (!(field.type == FieldsConfig.Field.Type.BOOLEAN ||

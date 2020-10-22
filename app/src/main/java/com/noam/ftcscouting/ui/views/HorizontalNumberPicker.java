@@ -16,7 +16,7 @@ public class HorizontalNumberPicker extends ConstraintLayout {
     private OnValueChangeListener listener = null;
 
     private TextView mainView, plus, minus;
-    private int maxValue = 10, minValue = 0, value = 0;
+    private int maxValue = 10, minValue = 0, value = 0, step = 1;
 
     public HorizontalNumberPicker(@NonNull Context context) {
         super(context);
@@ -28,8 +28,8 @@ public class HorizontalNumberPicker extends ConstraintLayout {
         plus = findViewById(R.id.plus);
         minus = findViewById(R.id.minus);
         mainView = findViewById(R.id.text);
-        plus.setOnClickListener(this::increment);
-        minus.setOnClickListener(this::decrement);
+        plus.setOnTouchListener(new RepeatedTouchListener(this::increment));
+        minus.setOnTouchListener(new RepeatedTouchListener(this::decrement));
         mainView.setText("0");
     }
 
@@ -42,13 +42,15 @@ public class HorizontalNumberPicker extends ConstraintLayout {
     }
 
     public void increment() {
-        if (maxValue > value)
-            setValue(++value);
+        int newVal = (value + step);
+        if (maxValue >= newVal)
+            setValue(newVal);
     }
 
     public void decrement() {
-        if (minValue < value)
-            setValue(--value);
+        int newVal = (value - step);
+        if (minValue <= newVal)
+            setValue(newVal);
     }
 
     public void increment(View v) {
@@ -86,7 +88,7 @@ public class HorizontalNumberPicker extends ConstraintLayout {
         }
     }
 
-    public void setValue(int value) {
+    public void setValue(final int value) {
         if (value < minValue || value > maxValue)
             throw new IllegalArgumentException(
                     "Value " + value + " is not in range " + minValue + ", " + maxValue
@@ -105,10 +107,15 @@ public class HorizontalNumberPicker extends ConstraintLayout {
             plus.setEnabled(true);
         }
 
-        if (listener != null)
-            listener.onValueChange(this.value, value);
-
+        final int oldVal = this.value;
         this.value = value;
+
+        if (listener != null)
+            listener.onValueChange(oldVal, value);
+    }
+
+    public void setStep(String s){
+        this.step = Integer.parseInt(s);
     }
 
     public interface OnValueChangeListener {

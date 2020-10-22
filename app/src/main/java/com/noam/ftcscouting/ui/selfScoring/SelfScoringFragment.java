@@ -232,14 +232,14 @@ public class SelfScoringFragment extends Fragment implements StaticSync.Notifiab
             acquireLock();
             holdsLock = true;
             mFragment.setEnabled(holdsLock);
-            mFragment.updateUI();
+            runOnUiThread(mFragment::updateUI);
         } else {
             if (lockTime.equals(lockLasts)) {
                 return;
             }
             holdsLock = false;
             mFragment.setEnabled(holdsLock);
-            mFragment.updateUI();
+            runOnUiThread(mFragment::updateUI);
             timer.schedule(new CustomTask(MatchesActivity.Task.CHECK), new Date(lockTime + MatchesActivity.second));
             lockLasts = null;
         }
