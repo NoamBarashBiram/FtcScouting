@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
-import android.text.Layout;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
@@ -42,7 +41,7 @@ public class MatchesFragment extends Fragment {
     public static final String TAG = "MatchesFragment";
 
     private int matchIndex = 0, matchesLen;
-    private HashMap<String, ArrayList<Pair<String, ? extends View>>> fieldObjects =
+    private final HashMap<String, ArrayList<Pair<String, ? extends View>>> fieldObjects =
             new HashMap<String, ArrayList<Pair<String, ? extends View>>>() {{
                 put(FieldsConfig.auto, new ArrayList<>());
                 put(FieldsConfig.telOp, new ArrayList<>());
@@ -50,12 +49,12 @@ public class MatchesFragment extends Fragment {
     private volatile boolean enabled = false;
     private LinearLayout rootView;
     private String event, team;
-    private String[] kinds = new String[]{FieldsConfig.auto, FieldsConfig.telOp};
+    private static final String[] kinds = new String[]{FieldsConfig.auto, FieldsConfig.telOp};
     private OnScoreChangeListener listener;
     private ScoreCalculator calc;
 
     public int autoScore, telOpScore;
-    private volatile boolean constructedUI = false;
+    volatile boolean constructedUI = false;
     private final static List<FieldsConfig.Field.Type> scorableTypes =
             Arrays.asList(
                     FieldsConfig.Field.Type.BOOLEAN,
@@ -380,7 +379,7 @@ public class MatchesFragment extends Fragment {
         return "";
     }
 
-    public Map<String, Object> getChanges(String kind) {
+    public Map<String, Object> getChanges(@FieldsConfig.FieldKind String kind) {
         HashMap<String, Object> changes = new HashMap<>();
         boolean isDifferent = false;
         for (Pair<String, ? extends View> field : fieldObjects.get(kind)) {

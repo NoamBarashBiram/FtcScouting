@@ -5,19 +5,15 @@ import android.animation.ObjectAnimator;
 import android.app.AlertDialog;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.fragment.app.Fragment;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.BaseTransientBottomBar;
-import com.google.android.material.snackbar.Snackbar;
 import com.noam.ftcscouting.database.FieldsConfig;
 import com.noam.ftcscouting.database.FirebaseHandler;
 import com.noam.ftcscouting.ui.teams.TeamsFragment;
@@ -46,8 +42,7 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
     private String[] matches;
     private ImageView next, prev;
     private View fragmentView;
-    private ConstraintLayout root;
-    private FloatingActionButton saveBtn;
+    private CoordinatorLayout saveRoot;
 
     private boolean played = true;
     private CheckBox playedCheckBox;
@@ -57,19 +52,13 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
     public static final int fadeDurMS = 50;
     public static final float fadeOutAlpha = 0.3f;
     public static final long second = 1000, minute = 60 * second, fiftyFiveSeconds = 55 * second;
+
     private Long lockLasts = null;
     private Timer timer = new Timer();
     private volatile boolean initialized = false, checkedLock = false, UIConstructed = false;
     private final Object lock = new Object();
-    private BaseTransientBottomBar.BaseCallback<Snackbar> snackCallback = new BaseTransientBottomBar.BaseCallback<Snackbar>() {
-        @Override
-        public void onDismissed(Snackbar transientBottomBar, int event) {
-            runOnUiThread(() -> saveBtn.animate().translationY(0).setDuration(100).start());
-            super.onDismissed(transientBottomBar, event);
-        }
-    };
 
-    private Animator.AnimatorListener updateUIWhenDone = new Animator.AnimatorListener() {
+    private final Animator.AnimatorListener updateUIWhenDone = new Animator.AnimatorListener() {
         @Override
         public void onAnimationStart(Animator animator) {
 
@@ -154,8 +143,7 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
         prev = findViewById(R.id.prev);
         next = findViewById(R.id.next);
         fragmentView = findViewById(R.id.fragmentView);
-        root = findViewById(R.id.root);
-        saveBtn = findViewById(R.id.save);
+        saveRoot = findViewById(R.id.saveRoot);
 
         if (mFragment != null && !initialized) { // fragment has already been attached but not initialized
             mFragment.init(event, team, matchIndex, holdsLock, matches.length);
@@ -265,15 +253,45 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
     }
 
     public void previousMatch(View v) {
-        if (matchIndex == 0) return;
-        matchIndex--;
-        animate(true);
+        confirm(() -> {
+            if (matchIndex == 0) return;
+            matchIndex--;
+            animate(true);
+        });
     }
 
     public void nextMatch(View v) {
-        if (matchIndex == matches.length) return;
-        matchIndex++;
-        animate(true);
+        confirm(() -> {
+            if (matchIndex == matches.length) return;
+            matchIndex++;
+            animate(true);
+        });
+    }
+
+    @Override
+    public void onBackPressed() {
+        confirm(super::onBackPressed);
+    }
+
+    private void confirm(Runnable onConformation) {
+        if (!mFragment.constructedUI){
+            onConformation.run();
+            return;
+        }
+        final Map<String, Object> autoChanges = mFragment.getChanges(FieldsConfig.auto),
+                telOpChanges = mFragment.getChanges(FieldsConfig.telOp);
+        if (autoChanges != null || telOpChanges != null)
+            new AlertDialog.Builder(this)
+                    .setTitle(R.string.save_conformation_title)
+                    .setMessage(R.string.save_conformation_msg)
+                    .setPositiveButton("Save", (dialog, which) -> {
+                        save(autoChanges, telOpChanges);
+                        onConformation.run();
+                    })
+                    .setNegativeButton("Don't Save", ((dialog, which) -> onConformation.run()))
+                    .create().show();
+        else
+            onConformation.run();
     }
 
     private void updateUI() {
@@ -364,9 +382,7 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
     }
 
     private void snackSave() {
-        runOnUiThread(() -> saveBtn.animate().translationY(-128).setDuration(100).start());
-        Snackbar snack = Toaster.snack(root, "Saved");
-        snack.addCallback(snackCallback);
+        Toaster.snack(saveRoot, "Saved");
     }
 
     public void togglePlayed(View view) {
@@ -429,7 +445,7 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
 
     public class CustomTask extends TimerTask {
 
-        private Task task;
+        private final Task task;
 
         public CustomTask(Task task) {
             this.task = task;

@@ -42,4 +42,7 @@
     <string name="avg_example">Field Name: AVG Value, AVG Score</string>
     <string name="avg_kind">%s AVG Score- %.2f</string>
     <string name="avarage">Average</string>
+    <string name="save">Save</string>
+    <string name="save_conformation_msg">You have unsaved changes in this match.\nWould you like to save them?</string>
+    <string name="save_conformation_title">Unsaved Changes</string>
 </resources>
