@@ -32,7 +32,7 @@ public class TeamsFragment extends Fragment implements StaticSync.Notifiable, Te
             EXTRA_EVENT = "com.noam.ftcscouting.ui.myMatchesMyMatchesFragment.EXTRA_EVENT",
             EXTRA_TEAM_NAME = "EXTRA_TEAM_NAME";
 
-    private static final String eventString = "Events";
+    public static final String eventString = "Events";
     private static final int BTN_HEIGHT = 200, BTN_TXT_SIZE = 18;
     private String event; 
     private ArrayList<String> teams = null;

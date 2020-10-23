@@ -279,13 +279,14 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
             return;
         }
         final Map<String, Object> autoChanges = mFragment.getChanges(FieldsConfig.auto),
-                telOpChanges = mFragment.getChanges(FieldsConfig.telOp);
-        if (autoChanges != null || telOpChanges != null)
+                telOpChanges = mFragment.getChanges(FieldsConfig.telOp),
+                penaltyChanges = mFragment.getChanges(FieldsConfig.penalty);
+        if (autoChanges != null || telOpChanges != null || penaltyChanges != null)
             new AlertDialog.Builder(this)
                     .setTitle(R.string.save_conformation_title)
                     .setMessage(R.string.save_conformation_msg)
                     .setPositiveButton("Save", (dialog, which) -> {
-                        save(autoChanges, telOpChanges);
+                        save(autoChanges, telOpChanges, penaltyChanges);
                         onConformation.run();
                     })
                     .setNegativeButton("Don't Save", ((dialog, which) -> onConformation.run()))
@@ -351,11 +352,13 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
     public void save(View v) {
         if (matchIndex < matches.length)
             save(mFragment.getChanges(FieldsConfig.auto),
-                    mFragment.getChanges(FieldsConfig.telOp));
+                    mFragment.getChanges(FieldsConfig.telOp),
+                            mFragment.getChanges(FieldsConfig.penalty));
     }
 
-    public void save(Map<String, Object> autoChanges, Map<String, Object> telOpChanges) {
+    public void save(Map<String, Object> autoChanges, Map<String, Object> telOpChanges, Map<String, Object> penaltyChanges) {
         boolean changed = false;
+
         if (autoChanges != null) {
             FirebaseHandler.reference
                     .child(eventsString)
@@ -373,6 +376,16 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
                     .child(team)
                     .child(FieldsConfig.telOp)
                     .updateChildren(telOpChanges)
+                    .addOnFailureListener(e -> Toaster.toast(this, e));
+            changed = true;
+        }
+        if (penaltyChanges != null) {
+            FirebaseHandler.reference
+                    .child(eventsString)
+                    .child(event)
+                    .child(team)
+                    .child(FieldsConfig.penalty)
+                    .updateChildren(penaltyChanges)
                     .addOnFailureListener(e -> Toaster.toast(this, e));
             changed = true;
         }

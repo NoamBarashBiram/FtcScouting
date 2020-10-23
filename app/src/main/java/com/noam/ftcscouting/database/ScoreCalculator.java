@@ -14,8 +14,7 @@ public class ScoreCalculator {
 
     private static final String TAG = "ScoreCalculator";
 
-    private final String event;
-    private final String team;
+    public final String event, team;
 
     public ScoreCalculator(String event, String team) {
         this.event = event;

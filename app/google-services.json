@@ -8,38 +8,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:181854697666:android:662940fe5bbbab6984a35b",
+        "mobilesdk_app_id": "1:181854697666:android:1b3d201f8a749e3b84a35b",
         "android_client_info": {
           "package_name": "com.noam.ftcscouting"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "181854697666-gikd8ke796qe1me27uuas80tsks8laop.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyC3Qz7dySOHe53w1WHIHtSCkVCJp-Bl-9I"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "181854697666-gikd8ke796qe1me27uuas80tsks8laop.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:181854697666:android:e87343eb0b0709ec84a35b",
-        "android_client_info": {
-          "package_name": "com.noam.ftcscouting.admin"
         }
       },
       "oauth_client": [

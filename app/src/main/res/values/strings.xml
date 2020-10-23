@@ -45,4 +45,8 @@
     <string name="save">Save</string>
     <string name="save_conformation_msg">You have unsaved changes in this match.\nWould you like to save them?</string>
     <string name="save_conformation_title">Unsaved Changes</string>
+    <string name="auto">Autonomous</string>
+    <string name="telOp">TelOp</string>
+    <string name="penalty">Penalty</string>
+    <string name="rank_format">#%d %s: %.2f</string>
 </resources>

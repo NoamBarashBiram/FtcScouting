@@ -376,6 +376,8 @@ public class SelfScoringFragment extends Fragment implements StaticSync.Notifiab
 
         Map<String, Object> autoChanges = mFragment.getChanges(FieldsConfig.auto);
         Map<String, Object> telOpChanges = mFragment.getChanges(FieldsConfig.telOp);
+        Map<String, Object> penaltyChanges = mFragment.getChanges(FieldsConfig.penalty);
+
         if (autoChanges == null) {
             autoChanges = FirebaseHandler.snapshot
                     .child(eventsString)
@@ -393,10 +395,21 @@ public class SelfScoringFragment extends Fragment implements StaticSync.Notifiab
                     .getValue(new GenericTypeIndicator<Map<String, Object>>(){});
         }
 
+        if (penaltyChanges == null) {
+            penaltyChanges = FirebaseHandler.snapshot
+                    .child(eventsString)
+                    .child(selfScoringEventName)
+                    .child(team)
+                    .child(FieldsConfig.penalty)
+                    .getValue(new GenericTypeIndicator<Map<String, Object>>(){});
+        }
+
         Map<String, Object> update = new HashMap<>();
+
         update.put(FieldsConfig.matches, newMatches);
         update.put(FieldsConfig.telOp, telOpChanges);
         update.put(FieldsConfig.auto, autoChanges);
+        update.put(FieldsConfig.penalty, penaltyChanges);
         update.put("LOCK", lockLasts);
 
         FirebaseHandler.reference
