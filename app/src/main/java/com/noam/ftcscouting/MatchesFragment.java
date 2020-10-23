@@ -194,7 +194,7 @@ public class MatchesFragment extends Fragment {
                         try {
                             entry = Integer.parseInt(getValue(kind, pair.first));
                         } catch (NumberFormatException e) {
-                            Log.e(TAG, "updateUI: ", e);
+                            Log.w(TAG, "updateUI: ", e);
                         }
                         ((Spinner) pair.second).setSelection(entry);
                     }
@@ -386,14 +386,27 @@ public class MatchesFragment extends Fragment {
         boolean isDifferent = false;
         for (Pair<String, ? extends View> field : fieldObjects.get(kind)) {
             String[] oldValues = getValues(kind, field.first);
-            String[] values = oldValues.clone();
-            if (values.length != matchesLen) {
-                values = Arrays.copyOf(values, matchesLen);
+            FieldsConfig.Field f =
+                    FirebaseHandler.configuration.getField(kind, field.first);
+            if (oldValues.length != matchesLen) {
+                oldValues = Arrays.copyOf(oldValues, matchesLen);
                 for (int i = 0; i < matchesLen; i++) {
-                    if (values[i] == null)
-                        values[i] = "";
+                    if (oldValues[i] == null) {
+                        switch (f.type){
+                            case CHOICE:
+                            case BOOLEAN:
+                                oldValues[i] = "0";
+                                break;
+                            case INTEGER:
+                                oldValues[i] = f.get(FieldsConfig.Field.min);
+                                break;
+                            default:
+                                oldValues[i] = "";
+                        }
+                    }
                 }
             }
+            String[] values = oldValues.clone();
             values[matchIndex] = getValue(field.second);
             String newVal = TextUtils.join(";", values);
             changes.put(field.first, newVal);

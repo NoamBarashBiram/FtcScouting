@@ -40,12 +40,15 @@ public class RanksFragment extends Fragment implements StaticSync.Notifiable {
                              ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_ranks, container, false);
 
+        // Initialize all views variables
         teamsLayout = root.findViewById(R.id.teams);
 
         autoCheck = root.findViewById(R.id.autoCheck);
         telOpCheck = root.findViewById(R.id.telOpCheck);
         penaltyCheck = root.findViewById(R.id.penaltyCheck);
 
+        // Set text near the CheckBoxes OnClickListener to toggle the CheckBox near it,
+        // but only when the CheckBox is enabled
         root.findViewById(R.id.autoText).setOnClickListener(v -> {
             if (autoCheck.isEnabled())
                 autoCheck.setChecked(!autoCheck.isChecked());
@@ -59,7 +62,7 @@ public class RanksFragment extends Fragment implements StaticSync.Notifiable {
                 penaltyCheck.setChecked(!penaltyCheck.isChecked());
         });
 
-
+        // Set CheckBoxes to updateUI when toggled
         autoCheck.setOnCheckedChangeListener((buttonView, isChecked) -> updateUI());
         telOpCheck.setOnCheckedChangeListener((buttonView, isChecked) -> updateUI());
         penaltyCheck.setOnCheckedChangeListener((buttonView, isChecked) -> updateUI());
@@ -70,7 +73,11 @@ public class RanksFragment extends Fragment implements StaticSync.Notifiable {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        // Get event name from parent activity Intent
         event = getActivity().getIntent().getStringExtra(EXTRA_EVENT);
+
+        // Set title
         getActivity().setTitle(unFireKey(event) + " Ranks");
     }
 
@@ -132,11 +139,13 @@ public class RanksFragment extends Fragment implements StaticSync.Notifiable {
 
 
     private void updateUI() {
-        // make sure at least one checkbox is
+        // Enable all checkboxes
         autoCheck.setEnabled(true);
         telOpCheck.setEnabled(true);
         penaltyCheck.setEnabled(true);
 
+        // Make sure at least one checkbox is checked all the time
+        // If only one is checked, disable it
         if (!autoCheck.isChecked()) {
             if (!telOpCheck.isChecked()) {
                 penaltyCheck.setEnabled(false);
@@ -147,9 +156,11 @@ public class RanksFragment extends Fragment implements StaticSync.Notifiable {
             autoCheck.setEnabled(false);
         }
 
-        Node<Float>[] ranks = new Node[teams.size()];
+        // Create an array of Nodes containing TeamName as the key and average score as the value
+        // taking only the checked fieldKinds, Autonomous TelOp and Penalty
+        TeamScore[] ranks = new TeamScore[teams.size()];
         for (int i = 0; i < ranks.length; i++) {
-            ranks[i] = new Node<>(teams.get(i).team, 0f);
+            ranks[i] = new TeamScore(teams.get(i).team, 0f);
             if (autoCheck.isChecked()) {
                 ranks[i].value += teams.get(i).getAvg(FieldsConfig.auto);
             }
@@ -161,26 +172,30 @@ public class RanksFragment extends Fragment implements StaticSync.Notifiable {
             }
         }
 
+        // Sort the teams by their score
         Arrays.sort(ranks, (o1, o2) -> (int) (100 * (o2.value - o1.value)));
 
+        // Reset layout before constructing it
         runOnUiThread(() -> teamsLayout.removeAllViews());
 
+        // Add teams one by one, in their order since the array is sorted
         for (int i = 0; i < ranks.length; i++) {
-            Node<Float> rank = ranks[i];
+            TeamScore rank = ranks[i];
             final TextView team = new TextView(getContext());
             team.setText(String.format(getString(R.string.rank_format), i + 1, unFireKey(rank.key), rank.value));
             team.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT));
-            team.setTextSize(22);
+            team.setTextSize(20);
             runOnUiThread(() -> teamsLayout.addView(team));
         }
     }
 
-    private static class Node<V> {
+    // Class to hold the teams and their score
+    private static class TeamScore {
         public final String key;
-        public V value;
+        public float value;
 
-        public Node(String key, V value) {
+        public TeamScore(String key, float value) {
             this.key = key;
             this.value = value;
         }

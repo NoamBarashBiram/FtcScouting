@@ -1,5 +1,6 @@
 package com.noam.ftcscouting.ui.selfScoring;
 
+import android.app.AlertDialog;
 import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.os.Bundle;
@@ -76,7 +77,7 @@ public class SelfScoringFragment extends Fragment implements StaticSync.Notifiab
         if (fragment instanceof MatchesFragment) {
             mFragment = (MatchesFragment) fragment;
             matches = getMatches();
-            mFragment.init(selfScoringEventName, team, matches, holdsLock, matches+1);
+            mFragment.init(selfScoringEventName, team, matches, holdsLock, matches + 1);
             mFragment.setOnScoreChangeListener(this);
         }
         super.onAttachFragment(fragment);
@@ -231,18 +232,16 @@ public class SelfScoringFragment extends Fragment implements StaticSync.Notifiab
         if (lockTime == null || lockTime < System.currentTimeMillis()) {
             acquireLock();
             holdsLock = true;
-            mFragment.setEnabled(holdsLock);
-            runOnUiThread(mFragment::updateUI);
         } else {
             if (lockTime.equals(lockLasts)) {
                 return;
             }
             holdsLock = false;
-            mFragment.setEnabled(holdsLock);
-            runOnUiThread(mFragment::updateUI);
             timer.schedule(new CustomTask(MatchesActivity.Task.CHECK), new Date(lockTime + MatchesActivity.second));
             lockLasts = null;
         }
+        mFragment.setEnabled(holdsLock);
+        runOnUiThread(mFragment::updateUI);
     }
 
     @Override
@@ -318,8 +317,8 @@ public class SelfScoringFragment extends Fragment implements StaticSync.Notifiab
         if (timer == null) return;
         if (message instanceof ArrayList) {
             ArrayList<String> realMessage = (ArrayList<String>) message;
-            if (!enabled){
-                if (realMessage.get(0).equals(eventsString) && realMessage.get(1).equals(selfScoringEventName)){
+            if (!enabled) {
+                if (realMessage.get(0).equals(eventsString) && realMessage.get(1).equals(selfScoringEventName)) {
                     enabled = true;
                     team = FirebaseHandler.snapshot
                             .child(eventsString)
@@ -329,9 +328,9 @@ public class SelfScoringFragment extends Fragment implements StaticSync.Notifiab
                             .next()
                             .getKey();
 
-                    getActivity().runOnUiThread(() -> selfScoringDisabled.setVisibility(View.GONE));
+                    runOnUiThread(() -> selfScoringDisabled.setVisibility(View.GONE));
                     matches = getMatches();
-                    mFragment.init(selfScoringEventName, team, matches, holdsLock, matches+1);
+                    mFragment.init(selfScoringEventName, team, matches, holdsLock, matches + 1);
                     mFragment.setOnScoreChangeListener(this);
 
                     getActivity().setTitle(unFireKey(team));
@@ -364,6 +363,14 @@ public class SelfScoringFragment extends Fragment implements StaticSync.Notifiab
     }
 
     public void save(View v) {
+        Map<String, Object> autoChanges = mFragment.getChanges(FieldsConfig.auto);
+        Map<String, Object> telOpChanges = mFragment.getChanges(FieldsConfig.telOp);
+        Map<String, Object> penaltyChanges = mFragment.getChanges(FieldsConfig.penalty);
+
+        save(autoChanges, telOpChanges, penaltyChanges);
+    }
+
+    public void save(Map<String, Object> autoChanges, Map<String, Object> telOpChanges, Map<String, Object> penaltyChanges) {
         if (!enabled) return;
         long time = System.currentTimeMillis();
         String newMatches = FirebaseHandler.snapshot
@@ -374,17 +381,14 @@ public class SelfScoringFragment extends Fragment implements StaticSync.Notifiab
                 .getValue(String.class);
         newMatches += (newMatches.equals("") ? "" : ";") + time;
 
-        Map<String, Object> autoChanges = mFragment.getChanges(FieldsConfig.auto);
-        Map<String, Object> telOpChanges = mFragment.getChanges(FieldsConfig.telOp);
-        Map<String, Object> penaltyChanges = mFragment.getChanges(FieldsConfig.penalty);
-
         if (autoChanges == null) {
             autoChanges = FirebaseHandler.snapshot
                     .child(eventsString)
                     .child(selfScoringEventName)
                     .child(team)
                     .child(FieldsConfig.auto)
-                    .getValue(new GenericTypeIndicator<Map<String, Object>>(){});
+                    .getValue(new GenericTypeIndicator<Map<String, Object>>() {
+                    });
         }
         if (telOpChanges == null) {
             telOpChanges = FirebaseHandler.snapshot
@@ -392,7 +396,8 @@ public class SelfScoringFragment extends Fragment implements StaticSync.Notifiab
                     .child(selfScoringEventName)
                     .child(team)
                     .child(FieldsConfig.telOp)
-                    .getValue(new GenericTypeIndicator<Map<String, Object>>(){});
+                    .getValue(new GenericTypeIndicator<Map<String, Object>>() {
+                    });
         }
 
         if (penaltyChanges == null) {
@@ -401,7 +406,8 @@ public class SelfScoringFragment extends Fragment implements StaticSync.Notifiab
                     .child(selfScoringEventName)
                     .child(team)
                     .child(FieldsConfig.penalty)
-                    .getValue(new GenericTypeIndicator<Map<String, Object>>(){});
+                    .getValue(new GenericTypeIndicator<Map<String, Object>>() {
+                    });
         }
 
         Map<String, Object> update = new HashMap<>();
@@ -420,8 +426,26 @@ public class SelfScoringFragment extends Fragment implements StaticSync.Notifiab
 
         matches++;
         mFragment.setMatchIndex(matches);
-        mFragment.init(selfScoringEventName, team, matches, holdsLock, matches+1);
+        mFragment.init(selfScoringEventName, team, matches, holdsLock, matches + 1);
         mFragment.setOnScoreChangeListener(this);
         mFragment.updateUI();
+    }
+
+    @Override
+    public void onDetach() {
+        final Map<String, Object> autoChanges = mFragment.getChanges(FieldsConfig.auto),
+                telOpChanges = mFragment.getChanges(FieldsConfig.telOp),
+                penaltyChanges = mFragment.getChanges(FieldsConfig.penalty);
+
+        if (autoChanges != null || telOpChanges != null || penaltyChanges != null) {
+            new AlertDialog.Builder(getContext())
+                    .setTitle(R.string.save_conformation_title)
+                    .setMessage(R.string.save_conformation_msg)
+                    .setPositiveButton("Save", (dialog, which) -> save(autoChanges, telOpChanges, penaltyChanges))
+                    .setNegativeButton("Don't Save", null)
+                    .create()
+                    .show();
+        }
+        super.onDetach();
     }
 }
