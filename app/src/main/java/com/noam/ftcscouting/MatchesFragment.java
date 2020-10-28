@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
@@ -61,6 +62,7 @@ public class MatchesFragment extends Fragment {
                     FieldsConfig.Field.Type.INTEGER,
                     FieldsConfig.Field.Type.TITLE
             );
+    private Handler handler = new Handler();
 
     public MatchesFragment() {
         // Required empty public constructor
@@ -173,12 +175,15 @@ public class MatchesFragment extends Fragment {
                 for (int i = 0; i < rootView.getChildCount(); i++) {
                     View child = rootView.getChildAt(i);
                     if (child instanceof TextView) {
-                        child.setEnabled(enabled);
-                        ((TextView) child).setTextColor(enabled ? Color.BLACK : 0xffcccccc);
+                        runOnUiThread(() -> {
+                            child.setEnabled(enabled);
+                            ((TextView) child).setTextColor(enabled ? Color.BLACK : 0xffcccccc);
+                        });
                     } else if (child instanceof ViewGroup) {
                         ViewGroup layout = (ViewGroup) child;
                         for (int i2 = 0; i2 < layout.getChildCount(); i2++) {
-                            layout.getChildAt(i2).setEnabled(enabled);
+                            final int finalI = i2;
+                            runOnUiThread(() -> layout.getChildAt(finalI).setEnabled(enabled));
                         }
                     }
                 }
@@ -186,17 +191,23 @@ public class MatchesFragment extends Fragment {
                     if (pair.second instanceof HorizontalNumberPicker) {
                         runOnUiThread(() -> ((HorizontalNumberPicker) pair.second).setValue(getValue(kind, pair.first)));
                     } else if (pair.second instanceof DependableCheckBox) {
-                        ((DependableCheckBox) pair.second).setChecked(getValue(kind, pair.first).equals("1"));
+                        final boolean checked  = getValue(kind, pair.first).equals("1");
+                        runOnUiThread(() -> ((DependableCheckBox) pair.second).setChecked(checked));
                     } else if (pair.second instanceof EditText) {
-                        ((EditText) pair.second).setText(getValue(kind, pair.first));
+                        final String val = getValue(kind, pair.first);
+                        runOnUiThread(() -> ((EditText) pair.second).setText(val));
                     } else if (pair.second instanceof Spinner) {
                         int entry = 0;
-                        try {
-                            entry = Integer.parseInt(getValue(kind, pair.first));
-                        } catch (NumberFormatException e) {
-                            Log.w(TAG, "updateUI: ", e);
+                        String val = getValue(kind, pair.first);
+                        if (!val.equals("")) {
+                            try {
+                                entry = Integer.parseInt(val);
+                            } catch (NumberFormatException e) {
+                                Log.w(TAG, "updateUI: ", e);
+                            }
                         }
-                        ((Spinner) pair.second).setSelection(entry);
+                        final int finalEntry = entry;
+                        runOnUiThread(() -> ((Spinner) pair.second).setSelection(finalEntry));
                     }
                 }
             }
@@ -204,7 +215,10 @@ public class MatchesFragment extends Fragment {
     }
 
     private void constructUI() {
-        runOnUiThread(() -> rootView.removeAllViews());  // clear view before UI construction
+        runOnUiThread(() -> {
+            handler = new Handler();
+            rootView.removeAllViews();
+        });  // clear view before UI construction
         TextView title;
         View dataView;
         ConstraintSet constraintSet;
@@ -275,6 +289,7 @@ public class MatchesFragment extends Fragment {
                         break;
                     case INTEGER:
                         HorizontalNumberPicker picker = new HorizontalNumberPicker(getContext());
+                        picker.enableLongClick(handler);
                         picker.setMaxValue(field.get(FieldsConfig.Field.max));
                         picker.setMinValue(field.get(FieldsConfig.Field.min));
                         picker.setValue(getValue(kind, field.name));
@@ -392,7 +407,7 @@ public class MatchesFragment extends Fragment {
                 oldValues = Arrays.copyOf(oldValues, matchesLen);
                 for (int i = 0; i < matchesLen; i++) {
                     if (oldValues[i] == null) {
-                        switch (f.type){
+                        switch (f.type) {
                             case CHOICE:
                             case BOOLEAN:
                                 oldValues[i] = "0";

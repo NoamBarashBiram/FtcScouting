@@ -1,15 +1,19 @@
 package com.noam.ftcscouting.ui.ranks;
 
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.Transformation;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 
 import com.google.firebase.database.DataSnapshot;
@@ -26,7 +30,7 @@ import static com.noam.ftcscouting.database.FirebaseHandler.unFireKey;
 import static com.noam.ftcscouting.ui.teams.TeamsFragment.EXTRA_EVENT;
 import static com.noam.ftcscouting.ui.teams.TeamsFragment.eventString;
 
-public class RanksFragment extends Fragment implements StaticSync.Notifiable {
+public class RanksFragment extends Fragment implements StaticSync.Notifiable, View.OnClickListener {
 
     public static final String TAG = "RanksFragment";
 
@@ -35,9 +39,14 @@ public class RanksFragment extends Fragment implements StaticSync.Notifiable {
     private LinearLayout teamsLayout;
     private String event;
     private ArrayList<ScoreCalculator> teams;
+    private LayoutInflater inflater;
+
+    private static final int scoreHeight = spToPx(75);
+    private View prevView;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
+        this.inflater = inflater;
         View root = inflater.inflate(R.layout.fragment_ranks, container, false);
 
         // Initialize all views variables
@@ -63,9 +72,12 @@ public class RanksFragment extends Fragment implements StaticSync.Notifiable {
         });
 
         // Set CheckBoxes to updateUI when toggled
-        autoCheck.setOnCheckedChangeListener((buttonView, isChecked) -> updateUI());
-        telOpCheck.setOnCheckedChangeListener((buttonView, isChecked) -> updateUI());
-        penaltyCheck.setOnCheckedChangeListener((buttonView, isChecked) -> updateUI());
+        autoCheck.setOnCheckedChangeListener(
+                (buttonView, isChecked) -> new Thread(this::updateUI).start());
+        telOpCheck.setOnCheckedChangeListener(
+                (buttonView, isChecked) -> new Thread(this::updateUI).start());
+        penaltyCheck.setOnCheckedChangeListener(
+                (buttonView, isChecked) -> new Thread(this::updateUI).start());
 
         return root;
     }
@@ -98,7 +110,7 @@ public class RanksFragment extends Fragment implements StaticSync.Notifiable {
         for (DataSnapshot team : FirebaseHandler.snapshot.child(eventString).child(event).getChildren()) {
             teams.add(new ScoreCalculator(event, team.getKey()));
         }
-        updateUI();
+        new Thread(this::updateUI).start();
     }
 
     @Override
@@ -160,20 +172,21 @@ public class RanksFragment extends Fragment implements StaticSync.Notifiable {
         // taking only the checked fieldKinds, Autonomous TelOp and Penalty
         TeamScore[] ranks = new TeamScore[teams.size()];
         for (int i = 0; i < ranks.length; i++) {
-            ranks[i] = new TeamScore(teams.get(i).team, 0f);
+            Float autoScore = null, telOpScore = null, penaltyScore = null;
             if (autoCheck.isChecked()) {
-                ranks[i].value += teams.get(i).getAvg(FieldsConfig.auto);
+                autoScore = teams.get(i).getAvg(FieldsConfig.auto);
             }
             if (telOpCheck.isChecked()) {
-                ranks[i].value += teams.get(i).getAvg(FieldsConfig.telOp);
+                telOpScore = teams.get(i).getAvg(FieldsConfig.telOp);
             }
             if (penaltyCheck.isChecked()) {
-                ranks[i].value += teams.get(i).getAvg(FieldsConfig.penalty);
+                penaltyScore = teams.get(i).getAvg(FieldsConfig.penalty);
             }
+            ranks[i] = new TeamScore(teams.get(i).team, autoScore, telOpScore, penaltyScore);
         }
 
         // Sort the teams by their score
-        Arrays.sort(ranks, (o1, o2) -> (int) (100 * (o2.value - o1.value)));
+        Arrays.sort(ranks, (o1, o2) -> (int) (100 * (o2.getScore() - o1.getScore())));
 
         // Reset layout before constructing it
         runOnUiThread(() -> teamsLayout.removeAllViews());
@@ -181,23 +194,101 @@ public class RanksFragment extends Fragment implements StaticSync.Notifiable {
         // Add teams one by one, in their order since the array is sorted
         for (int i = 0; i < ranks.length; i++) {
             TeamScore rank = ranks[i];
-            final TextView team = new TextView(getContext());
-            team.setText(String.format(getString(R.string.rank_format), i + 1, unFireKey(rank.key), rank.value));
-            team.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT));
-            team.setTextSize(20);
+            final View team = inflater.inflate(R.layout.team, null);
+
+            team.setOnClickListener(this);
+
+            ((TextView) team.findViewById(R.id.rank)).setText(String.format("#%d", i + 1));
+            ((TextView) team.findViewById(R.id.teamName)).setText(unFireKey(rank.key));
+
+
+            ((TextView) team.findViewById(R.id.autoScore)).setText(toString(rank.getAutoScore()));
+            ((TextView) team.findViewById(R.id.telOpScore)).setText(toString(rank.getTelOoScore()));
+            ((TextView) team.findViewById(R.id.penaltyScore)).setText(toString(rank.getPenaltyScore()));
+
             runOnUiThread(() -> teamsLayout.addView(team));
         }
+    }
+
+    private String toString(Float score) {
+        if (score == null) return "N/A";
+        return score.toString();
+    }
+
+    @Override
+    public void onClick(View v) {
+        if (prevView != null) {
+            final View finalPrev = prevView;
+            Animation anim1 = new Animation() {
+                @Override
+                protected void applyTransformation(float interpolatedTime, Transformation t) {
+                    ConstraintLayout.LayoutParams params =
+                            (ConstraintLayout.LayoutParams) finalPrev.getLayoutParams();
+                    params.height = (int) (scoreHeight * (1 - interpolatedTime));
+                    finalPrev.setLayoutParams(params);
+                    super.applyTransformation(interpolatedTime, t);
+                }
+            };
+            anim1.setDuration(300);
+            finalPrev.startAnimation(anim1);
+            prevView = null;
+        }
+
+        final ConstraintLayout score = v.findViewById(R.id.scoreContainer);
+
+        if (score.getMeasuredHeight() != 0) return;
+
+        score.setVisibility(View.VISIBLE);
+
+        Animation anim2 = new Animation() {
+            @Override
+            protected void applyTransformation(float interpolatedTime, Transformation t) {
+                ConstraintLayout.LayoutParams params = (ConstraintLayout.LayoutParams) score.getLayoutParams();
+                params.height = (int) (scoreHeight * interpolatedTime);
+                score.setLayoutParams(params);
+                super.applyTransformation(interpolatedTime, t);
+            }
+        };
+        anim2.setDuration(300);
+        v.startAnimation(anim2);
+
+        prevView = score;
+    }
+
+    private static int spToPx(int sp) {
+        return (int) (sp * Resources.getSystem().getDisplayMetrics().scaledDensity);
     }
 
     // Class to hold the teams and their score
     private static class TeamScore {
         public final String key;
-        public float value;
+        private final Float[] scores;
 
-        public TeamScore(String key, float value) {
+        public TeamScore(String key, Float autoScore, Float telOpScore, Float penaltyScore) {
             this.key = key;
-            this.value = value;
+            this.scores = new Float[]{autoScore, telOpScore, penaltyScore};
+        }
+
+        public float getScore() {
+            float score = 0;
+            for (Float fieldScore : scores) {
+                if (fieldScore != null) {
+                    score += fieldScore;
+                }
+            }
+            return score;
+        }
+
+        public Float getAutoScore() {
+            return scores[0];
+        }
+
+        public Float getTelOoScore() {
+            return scores[1];
+        }
+
+        public Float getPenaltyScore() {
+            return scores[2];
         }
     }
 }

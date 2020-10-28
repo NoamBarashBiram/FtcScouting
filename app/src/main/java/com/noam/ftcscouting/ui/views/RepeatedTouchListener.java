@@ -9,7 +9,7 @@ public class RepeatedTouchListener implements View.OnTouchListener {
     private final long repeatInterval;
     private final View.OnClickListener listener;
 
-    private final Handler handler = new Handler();
+    private final Handler handler;
 
     private View touchedView;
 
@@ -28,27 +28,20 @@ public class RepeatedTouchListener implements View.OnTouchListener {
         }
     };
 
-    public RepeatedTouchListener(View.OnClickListener listener) {
+    public RepeatedTouchListener(View.OnClickListener listener, Handler handler) {
         this.initialRepeatDelay = 500;
         this.repeatInterval = 100;
         this.listener = listener;
+        this.handler = handler;
     }
 
-    public RepeatedTouchListener(long initialRepeatDelay, long repeatInterval, View.OnClickListener listener) {
+    public RepeatedTouchListener(long initialRepeatDelay, long repeatInterval, View.OnClickListener listener, Handler handler) {
         this.initialRepeatDelay = initialRepeatDelay;
         this.repeatInterval = repeatInterval;
         this.listener = listener;
+        this.handler = handler;
     }
-
-    /**
-     * Called when a touch event is dispatched to a view. This allows listeners to
-     * get a chance to respond before the target view.
-     *
-     * @param v     The view the touch event has been dispatched to.
-     * @param event The MotionEvent object containing full information about
-     *              the event.
-     * @return True if the listener has consumed the event, false otherwise.
-     */
+    
     @Override
     public boolean onTouch(View v, MotionEvent event) {
         switch (event.getAction()) {

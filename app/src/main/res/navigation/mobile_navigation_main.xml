@@ -9,11 +9,27 @@
         android:id="@+id/navigation_events"
         android:name="com.noam.ftcscouting.ui.events.EventsFragment"
         android:label="@string/title_events"
-        tools:layout="@layout/fragment_events" />
+        tools:layout="@layout/fragment_events">
+        <action
+            android:id="@+id/action_navigation_events_to_navigation_self_scoring"
+            app:destination="@id/navigation_self_scoring"
+            app:enterAnim="@android:anim/slide_out_right"
+            app:exitAnim="@android:anim/slide_in_left"
+            app:popEnterAnim="@android:anim/slide_out_right"
+            app:popExitAnim="@android:anim/slide_in_left" />
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_self_scoring"
         android:name="com.noam.ftcscouting.ui.selfScoring.SelfScoringFragment"
         android:label="@string/title_self_scoring"
-        tools:layout="@layout/fragment_self_scoring" />
+        tools:layout="@layout/fragment_self_scoring">
+        <action
+            android:id="@+id/action_navigation_self_scoring_to_navigation_events"
+            app:destination="@id/navigation_events"
+            app:enterAnim="@android:anim/slide_in_left"
+            app:exitAnim="@android:anim/slide_out_right"
+            app:popEnterAnim="@android:anim/slide_in_left"
+            app:popExitAnim="@android:anim/slide_out_right" />
+    </fragment>
 </navigation>

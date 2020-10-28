@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -39,7 +40,7 @@ public class SelfScoringFragment extends Fragment implements StaticSync.Notifiab
 
     private final static String TAG = "SelfScoringFragment";
 
-    private ArrayList<TimerSection> timerThings;
+    private TimerSection[] timerThings;
     private volatile boolean isTimerPlaying = false, isTimerPaused = false;
     private Button start, stop;
     private TextView timerText, telOpScore, autoScore;
@@ -50,7 +51,7 @@ public class SelfScoringFragment extends Fragment implements StaticSync.Notifiab
     private String team;
     private boolean holdsLock;
     private Long lockLasts = null;
-    private volatile boolean enabled = false;
+    private volatile boolean enabled = false, created = false, checkedLock = false ;
     private TextView selfScoringDisabled;
     private int matches = 0;
 
@@ -81,6 +82,16 @@ public class SelfScoringFragment extends Fragment implements StaticSync.Notifiab
             mFragment.setOnScoreChangeListener(this);
         }
         super.onAttachFragment(fragment);
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        Log.e(TAG, "onActivityCreated: ");
+        created = true;
+        if (checkedLock)
+            new Thread(mFragment::updateUI);
+
     }
 
     private int getMatches() {
@@ -153,18 +164,15 @@ public class SelfScoringFragment extends Fragment implements StaticSync.Notifiab
                 selfScoringDisabled.setVisibility(View.VISIBLE);
         }
 
-        timerThings = new ArrayList<TimerSection>() {{
-            add(new TimerSection(R.raw.countdown,
-                    3,
-                    0,
-                    ContextCompat.getColor(getContext(), R.color.colorPrimary)));
-            add(new TimerSection(R.raw.start, 2 * 60 + 30, 2 * 60, Color.TRANSPARENT));
-            add(new TimerSection(R.raw.pick_controllers_up, 5, 0, Color.YELLOW));
-            add(new TimerSection(R.raw.tel_op_start, 3, 0, Color.RED));
-            add(new TimerSection(null, 2 * 60, 30, Color.TRANSPARENT));
-            add(new TimerSection(R.raw.endgame, 30, 0, Color.LTGRAY));
-            add(new TimerSection(R.raw.end, 0, 0, Color.TRANSPARENT));
-        }};
+        timerThings = new TimerSection[]{
+                new TimerSection(R.raw.countdown, 3, 0, ContextCompat.getColor(getContext(), R.color.colorPrimary)),
+                new TimerSection(R.raw.start, 2 * 60 + 30, 2 * 60, Color.TRANSPARENT),
+                new TimerSection(R.raw.pick_controllers_up, 5, 0, Color.YELLOW),
+                new TimerSection(R.raw.tel_op_start, 3, 0, Color.RED),
+                new TimerSection(null, 2 * 60, 30, Color.TRANSPARENT),
+                new TimerSection(R.raw.endgame, 30, 0, Color.LTGRAY),
+                new TimerSection(R.raw.end, 0, 0, Color.TRANSPARENT)
+        };
     }
 
     public void startTimer(View v) {
@@ -198,16 +206,16 @@ public class SelfScoringFragment extends Fragment implements StaticSync.Notifiab
         final TimerTask task = new TimerTask() {
             @Override
             public void run() {
-                if (timerSection == -1 || time <= timerThings.get(timerSection).end + 1) {
+                if (timerSection == -1 || time <= timerThings[timerSection].end + 1) {
                     timerSection++;
-                    if (timerSection >= timerThings.size()) {
+                    if (timerSection >= timerThings.length) {
                         timer.cancel();
                         timerText.setBackgroundColor(Color.WHITE);
                         timerText.setText("2:30");
                         isTimerPlaying = isTimerPaused = false;
                         return;
                     }
-                    TimerSection section = timerThings.get(timerSection);
+                    TimerSection section = timerThings[timerSection];
                     time = section.start + 1;
                     if (section.sound != null) {
                         player = MediaPlayer.create(getContext(), section.sound);
@@ -241,7 +249,10 @@ public class SelfScoringFragment extends Fragment implements StaticSync.Notifiab
             lockLasts = null;
         }
         mFragment.setEnabled(holdsLock);
-        runOnUiThread(mFragment::updateUI);
+        Log.e(TAG, "checkLock: ");
+        checkedLock = true;
+        if (created)
+            mFragment.updateUI();
     }
 
     @Override

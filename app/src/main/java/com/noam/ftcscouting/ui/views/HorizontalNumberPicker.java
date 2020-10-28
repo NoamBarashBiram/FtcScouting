@@ -1,6 +1,7 @@
 package com.noam.ftcscouting.ui.views;
 
 import android.content.Context;
+import android.os.Handler;
 import android.view.View;
 import android.widget.TextView;
 
@@ -28,8 +29,6 @@ public class HorizontalNumberPicker extends ConstraintLayout {
         plus = findViewById(R.id.plus);
         minus = findViewById(R.id.minus);
         mainView = findViewById(R.id.text);
-        plus.setOnTouchListener(new RepeatedTouchListener(this::increment));
-        minus.setOnTouchListener(new RepeatedTouchListener(this::decrement));
         mainView.setText("0");
     }
 
@@ -116,6 +115,11 @@ public class HorizontalNumberPicker extends ConstraintLayout {
 
     public void setStep(String s){
         this.step = Integer.parseInt(s);
+    }
+
+    public void enableLongClick(Handler handler) {
+        plus.setOnTouchListener(new RepeatedTouchListener(this::increment, handler));
+        minus.setOnTouchListener(new RepeatedTouchListener(this::decrement, handler));
     }
 
     public interface OnValueChangeListener {

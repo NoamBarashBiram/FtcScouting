@@ -319,7 +319,7 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
             mFragment.showAvg();
             match.setText(R.string.avarage);
         } else {
-            mFragment.updateUI();
+            new Thread(mFragment::updateUI).start();
             match.setText(matches[matchIndex]);
         }
 
