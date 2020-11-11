@@ -4,7 +4,6 @@ import android.app.AlertDialog;
 import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -87,7 +86,6 @@ public class SelfScoringFragment extends Fragment implements StaticSync.Notifiab
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        Log.e(TAG, "onActivityCreated: ");
         created = true;
         if (checkedLock)
             new Thread(mFragment::updateUI);
@@ -249,7 +247,6 @@ public class SelfScoringFragment extends Fragment implements StaticSync.Notifiab
             lockLasts = null;
         }
         mFragment.setEnabled(holdsLock);
-        Log.e(TAG, "checkLock: ");
         checkedLock = true;
         if (created)
             mFragment.updateUI();

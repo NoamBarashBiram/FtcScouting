@@ -28,6 +28,8 @@ public class HorizontalNumberPicker extends ConstraintLayout {
         inflate(context, R.layout.horizontal_number_picker_layout, this);
         plus = findViewById(R.id.plus);
         minus = findViewById(R.id.minus);
+        plus.setOnClickListener(this::increment);
+        minus.setOnClickListener(this::decrement);
         mainView = findViewById(R.id.text);
         mainView.setText("0");
     }
@@ -120,6 +122,8 @@ public class HorizontalNumberPicker extends ConstraintLayout {
     public void enableLongClick(Handler handler) {
         plus.setOnTouchListener(new RepeatedTouchListener(this::increment, handler));
         minus.setOnTouchListener(new RepeatedTouchListener(this::decrement, handler));
+        plus.setOnClickListener(null);
+        minus.setOnClickListener(null);
     }
 
     public interface OnValueChangeListener {

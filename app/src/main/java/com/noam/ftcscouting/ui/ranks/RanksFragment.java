@@ -202,9 +202,9 @@ public class RanksFragment extends Fragment implements StaticSync.Notifiable, Vi
             ((TextView) team.findViewById(R.id.teamName)).setText(unFireKey(rank.key));
 
 
-            ((TextView) team.findViewById(R.id.autoScore)).setText(toString(rank.getAutoScore()));
-            ((TextView) team.findViewById(R.id.telOpScore)).setText(toString(rank.getTelOoScore()));
-            ((TextView) team.findViewById(R.id.penaltyScore)).setText(toString(rank.getPenaltyScore()));
+            ((TextView) team.findViewById(R.id.autoScore)).setText(String.format("%.2f", rank.getAutoScore()));
+            ((TextView) team.findViewById(R.id.telOpScore)).setText(String.format("%.2f", rank.getTelOoScore()));
+            ((TextView) team.findViewById(R.id.penaltyScore)).setText(String.format("%.2f", rank.getPenaltyScore()));
 
             runOnUiThread(() -> teamsLayout.addView(team));
         }
@@ -229,7 +229,7 @@ public class RanksFragment extends Fragment implements StaticSync.Notifiable, Vi
                     super.applyTransformation(interpolatedTime, t);
                 }
             };
-            anim1.setDuration(300);
+            anim1.setDuration(100);
             finalPrev.startAnimation(anim1);
             prevView = null;
         }
@@ -249,7 +249,7 @@ public class RanksFragment extends Fragment implements StaticSync.Notifiable, Vi
                 super.applyTransformation(interpolatedTime, t);
             }
         };
-        anim2.setDuration(300);
+        anim2.setDuration(100);
         v.startAnimation(anim2);
 
         prevView = score;

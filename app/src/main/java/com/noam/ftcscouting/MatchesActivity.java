@@ -5,6 +5,8 @@ import android.animation.ObjectAnimator;
 import android.app.AlertDialog;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.ImageView;
@@ -47,8 +49,7 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
     private boolean played = true;
     private CheckBox playedCheckBox;
 
-    private static final int
-            disabledColor = 0xffcccccc;
+    private static final int disabledColor = 0xffcccccc;
     public static final int fadeDurMS = 50;
     public static final float fadeOutAlpha = 0.3f;
     public static final long second = 1000, minute = 60 * second, fiftyFiveSeconds = 55 * second;
@@ -88,6 +89,7 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
 
         }
     };
+    private float lastXVal;
 
     @Override
     public void onAttachFragment(@NonNull Fragment fragment) {
@@ -163,6 +165,25 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
         runOnUiThread(this::updateUI);
 
         UIConstructed = true;
+
+        findViewById(R.id.scroll).setOnTouchListener((v, event) -> {
+            if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                lastXVal = event.getX();
+            } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                float dis = lastXVal - event.getX();
+                Log.e(TAG, "onTouch: " + dis);
+                if (dis > 300 && matchIndex < matches.length) {
+                    Log.e(TAG, "onTouch: Left");
+                    // left
+                    nextMatch(null);
+                } else if (dis < 300 && matchIndex > 0) {
+                    Log.e(TAG, "onTouch: Right");
+                    // right
+                    previousMatch(null);
+                }
+            }
+            return false;
+        });
     }
 
     private boolean isPlayed() {
@@ -274,7 +295,7 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
     }
 
     private void confirm(Runnable onConformation) {
-        if (!mFragment.constructedUI){
+        if (!mFragment.constructedUI) {
             onConformation.run();
             return;
         }
@@ -353,7 +374,7 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
         if (matchIndex < matches.length)
             save(mFragment.getChanges(FieldsConfig.auto),
                     mFragment.getChanges(FieldsConfig.telOp),
-                            mFragment.getChanges(FieldsConfig.penalty));
+                    mFragment.getChanges(FieldsConfig.penalty));
     }
 
     public void save(Map<String, Object> autoChanges, Map<String, Object> telOpChanges, Map<String, Object> penaltyChanges) {

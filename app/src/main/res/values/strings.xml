@@ -49,4 +49,5 @@
     <string name="telOp">TelOp</string>
     <string name="penalty">Penalty</string>
     <string name="rank_format">#%d %s: %.2f</string>
+    <string name="title_stats">Statistics</string>
 </resources>

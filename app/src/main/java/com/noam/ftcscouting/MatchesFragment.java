@@ -289,7 +289,7 @@ public class MatchesFragment extends Fragment {
                         break;
                     case INTEGER:
                         HorizontalNumberPicker picker = new HorizontalNumberPicker(getContext());
-                        picker.enableLongClick(handler);
+                        // picker.enableLongClick(handler);
                         picker.setMaxValue(field.get(FieldsConfig.Field.max));
                         picker.setMinValue(field.get(FieldsConfig.Field.min));
                         picker.setValue(getValue(kind, field.name));

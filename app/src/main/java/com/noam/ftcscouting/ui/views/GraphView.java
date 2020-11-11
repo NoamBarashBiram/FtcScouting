@@ -5,8 +5,10 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.PointF;
 import android.graphics.PorterDuff;
 import android.util.AttributeSet;
+import android.view.MotionEvent;
 import android.view.View;
 
 import androidx.annotation.Nullable;
@@ -14,13 +16,16 @@ import androidx.annotation.Nullable;
 import java.util.ArrayList;
 
 public class GraphView extends View {
-
-    private static final String TAG = "GraphView";
-
-    private final Paint linePaint = new Paint(), circlePaint = new Paint();
+    private final Paint linePaint = new Paint(),
+            shapePaint = new Paint(),
+            textPaint = new Paint();
     private final ArrayList<Float> pts = new ArrayList<>();
-    private final Path linePath = new Path(), circlePath = new Path();
-    private float radius = 10;
+    private final Path linePath = new Path(), circlePath = new Path(), polygonPath = new Path();
+    private float radius = 10, textSize = 20;
+    private float leftOffset = 40;
+    private String yName = null;
+    private final PointF clicked = new PointF();
+    private Float point = null;
 
     public GraphView(Context context) {
         this(context, null);
@@ -46,9 +51,15 @@ public class GraphView extends View {
         linePaint.setStrokeCap(Paint.Cap.ROUND);
         linePaint.setStrokeJoin(Paint.Join.ROUND);
 
-        circlePaint.setColor(Color.BLACK);
-        circlePaint.setStrokeWidth(10);
-        circlePaint.setStyle(Paint.Style.FILL);
+        shapePaint.setColor(Color.BLACK);
+        shapePaint.setStrokeWidth(10);
+        shapePaint.setStyle(Paint.Style.FILL);
+
+        textPaint.setColor(Color.BLACK);
+        textPaint.setTextAlign(Paint.Align.CENTER);
+        textPaint.setTextSize(textSize);
+
+        setTextSize(40);
     }
 
     public void setStrokeWidth(float width) {
@@ -58,12 +69,25 @@ public class GraphView extends View {
 
     public void setColor(int color) {
         linePaint.setColor(color);
-        circlePaint.setColor(color);
+        shapePaint.setColor(color);
+        textPaint.setColor(color);
         invalidate();
+    }
+
+    public void setTextSize(float textSize) {
+        this.textSize = textSize;
+        textPaint.setTextSize(textSize);
+        if (yName != null) leftOffset = textSize + 40;
     }
 
     public void setRadius(float radius) {
         this.radius = radius;
+    }
+
+    public void setYName(String yName) {
+        this.yName = yName;
+        leftOffset = yName == null ? 40 : textSize + 40;
+        invalidate();
     }
 
     public void clear() {
@@ -73,77 +97,131 @@ public class GraphView extends View {
         invalidate();
     }
 
-    public void addPoint(float x, float y) {
-        pts.add(x);
-        pts.add(y);
-
+    public void addPoint(float yVal) {
+        pts.add(yVal);
         invalidate();
     }
 
-    public void setData(float[] x, float[] y) {
-        if (x.length != y.length)
-            throw new IllegalArgumentException("X length does not equal Y length");
-
-        for (int i = 0; i < x.length; i++) {
-            pts.add(x[i]);
-            pts.add(y[i]);
-        }
+    public void addData(float[] data) {
+        for (float datum : data) pts.add(datum);
         invalidate();
     }
 
     @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+    public boolean onTouchEvent(MotionEvent event) {
+        switch (event.getAction()){
+            case MotionEvent.ACTION_DOWN:
+                clicked.x = event.getX();
+                clicked.y = event.getY();
+                invalidate();
+                return true;
+            case MotionEvent.ACTION_UP:
+                performClick();
+                return true;
+        }
+        return false;
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
-        canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
-
         if (getBackground() != null)
             getBackground().draw(canvas);
+        else
+            canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
 
-        generatePath();
+        float[] minMax = generatePath();
         canvas.drawPath(linePath, linePaint);
-        canvas.drawPath(circlePath, circlePaint);
+        canvas.drawPath(circlePath, shapePaint);
+
+        textPaint.setTextAlign(Paint.Align.LEFT);
+        canvas.drawText(String.format("%.2f", minMax[0]), 2 + getPaddingLeft(),
+                2 * textSize + getPaddingTop(), textPaint);
+        canvas.drawText(String.format("%.2f", minMax[1]), 2 + getPaddingLeft(),
+                getHeight() - 2 - getPaddingBottom(), textPaint);
+
+        canvas.drawLine(textSize + 8 + getPaddingLeft(), textSize * 2.5f + 4 + getPaddingTop(),
+                textSize + 8 + getPaddingLeft(), getHeight() - textSize * 1.5f - getPaddingBottom(),
+                linePaint);
+
+        textPaint.setTextAlign(Paint.Align.CENTER);
+
+        // down arrow
+        polygonPath.moveTo(textSize - 4 + getPaddingLeft(), getHeight() - textSize * 1.25f - 16 - getPaddingBottom());
+        polygonPath.lineTo(textSize + 20 + getPaddingLeft(), getHeight() - textSize * 1.25f - 16 - getPaddingBottom());
+        polygonPath.lineTo(textSize + 8 + getPaddingLeft(), getHeight() - textSize * 1.25f + 4 - getPaddingBottom());
+        canvas.drawPath(polygonPath, shapePaint);
+        polygonPath.reset();
+
+        // upper arrow
+        polygonPath.moveTo(textSize - 4 + getPaddingLeft(), textSize * 2.25f + 20 + getPaddingTop());
+        polygonPath.lineTo(textSize + 20 + getPaddingLeft(), textSize * 2.25f + 20 + getPaddingTop());
+        polygonPath.lineTo(textSize + 8 + getPaddingLeft(), textSize * 2.25f + getPaddingTop());
+        canvas.drawPath(polygonPath, shapePaint);
+        polygonPath.reset();
+
+        if (yName != null) {
+            canvas.rotate(-90);
+            canvas.drawText(yName, -getHeight() / 2f + getPaddingTop() - getPaddingBottom(), textSize + getPaddingLeft(), textPaint);
+        }
+
+        if (point != null) {
+            canvas.rotate(90);
+            textPaint.setTextAlign(Paint.Align.CENTER);
+            canvas.drawText(String.format("point = %.2f", point), (getWidth() - getPaddingRight() - getPaddingLeft()) / 2f, getPaddingTop() + textSize * 2, textPaint);
+            textPaint.setTextAlign(Paint.Align.CENTER);
+        }
     }
 
-    private void generatePath() {
-        if (pts.size() == 0) return;
+    private float[] generatePath() {
+        circlePath.reset();
+        linePath.reset();
+        point = null;
+        if (pts.size() == 0) return new float[]{0, 0};
 
-        float minX = pts.get(0);
-        float max = minX;
+        float xFactor =
+                (getMeasuredWidth() - getPaddingLeft() - getPaddingRight() - leftOffset - textSize) /
+                        (pts.size() - 1);
 
-        for (int i = 2; i < pts.size(); i += 2) {
+        float min = pts.get(0);
+        float max = min;
+
+        for (int i = 1; i < pts.size(); i ++) {
             if (pts.get(i) > max) max = pts.get(i);
-            if (pts.get(i) < minX) minX = pts.get(i);
+            if (pts.get(i) < min) min = pts.get(i);
         }
 
-        float xFactor = max - minX;
-        xFactor = (getMeasuredWidth() - getPaddingLeft() - getPaddingRight()) / xFactor;
-
-        float minY = pts.get(1);
-        max = minY;
-
-        for (int i = 3; i < pts.size(); i += 2) {
-            if (pts.get(i) > max) max = pts.get(i);
-            if (pts.get(i) < minY) minY = pts.get(i);
+        if (min == max){
+            min -= 1;
+            max += 1;
         }
 
-        float yFactor = max - minY;
-        yFactor = (getMeasuredHeight() - getPaddingBottom() - getPaddingTop()) / yFactor;
+        float yFactor = max - min;
+        yFactor = (getMeasuredHeight() - getPaddingBottom() - getPaddingTop() - textSize * 4) / yFactor;
 
 
-        float x  = getPaddingLeft() + (pts.get(0) - minX) * xFactor;
-        float y = getPaddingTop() + (max - pts.get(1)) * yFactor;
+        float x = leftOffset + getPaddingLeft();
+        float y = getPaddingTop() + textSize * 2.5f + (max - pts.get(0)) * yFactor;
         linePath.moveTo(x, y);
-        circlePath.addCircle(x, y, radius, Path.Direction.CW);
 
-        for (int i = 2; i < pts.size(); i += 2) {
-            x = getPaddingLeft() + (pts.get(i) - minX) * xFactor;
-            y = getPaddingTop() + (max - pts.get(i + 1)) * yFactor;
-            circlePath.addCircle(x, y, radius, Path.Direction.CW);
-            linePath.lineTo(x, y);
+        float thisRadius = radius;
+        if (Math.pow(clicked.x - x, 2) + Math.pow(clicked.y - y, 2) <= 1000){
+            point = pts.get(0);
+            thisRadius *= 2;
         }
+        circlePath.addCircle(x, y, thisRadius, Path.Direction.CW);
+
+        for (int i = 1; i < pts.size(); i++) {
+            x = leftOffset + getPaddingLeft() + i * xFactor;
+            y = getPaddingTop() + textSize * 2.5f + (max - pts.get(i)) * yFactor;
+            linePath.lineTo(x, y);
+            thisRadius = radius;
+            if (Math.pow(clicked.x - x, 2) + Math.pow(clicked.y - y, 2) <= 1000){
+                point = pts.get(i);
+                thisRadius *= 2;
+            }
+            circlePath.addCircle(x, y, thisRadius, Path.Direction.CW);
+        }
+
+        return new float[]{max, min};
     }
 }
