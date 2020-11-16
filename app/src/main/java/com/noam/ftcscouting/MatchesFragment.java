@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
-import android.os.Handler;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
@@ -62,7 +61,6 @@ public class MatchesFragment extends Fragment {
                     FieldsConfig.Field.Type.INTEGER,
                     FieldsConfig.Field.Type.TITLE
             );
-    private Handler handler = new Handler();
 
     public MatchesFragment() {
         // Required empty public constructor
@@ -215,10 +213,7 @@ public class MatchesFragment extends Fragment {
     }
 
     private void constructUI() {
-        runOnUiThread(() -> {
-            handler = new Handler();
-            rootView.removeAllViews();
-        });  // clear view before UI construction
+        runOnUiThread(() -> rootView.removeAllViews());  // clear view before UI construction
         TextView title;
         View dataView;
         ConstraintSet constraintSet;
@@ -473,13 +468,17 @@ public class MatchesFragment extends Fragment {
     }
 
     private void runOnUiThread(Runnable runnable) {
-        MyGetActivity().runOnUiThread(runnable);
+        mGetActivity().runOnUiThread(runnable);
     }
 
-    private Activity MyGetActivity() {
+    private Activity mGetActivity() {
         Activity ret = getActivity();
         if (ret == null) {
-            return getParentFragment().getActivity();
+            Fragment parent = getParentFragment();
+            if (parent == null){
+                return null;
+            }
+            return parent.getActivity();
         }
         return ret;
     }

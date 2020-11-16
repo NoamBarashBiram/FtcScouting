@@ -117,6 +117,7 @@ public class EventsFragment extends Fragment implements StaticSync.Notifiable, T
             leftColumn.removeAllViews();
             ArrayList<String> tempEvents = new ArrayList<>();
             for (String event : events) {
+                if (event == null) continue;
                 if (event.toLowerCase().matches(filter))
                     tempEvents.add(event);
             }

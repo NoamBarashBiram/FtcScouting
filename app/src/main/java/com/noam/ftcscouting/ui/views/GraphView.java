@@ -172,6 +172,20 @@ public class GraphView extends View {
         }
     }
 
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        int widthMode = MeasureSpec.getMode(widthMeasureSpec);
+        int heightMode = MeasureSpec.getMode(heightMeasureSpec);
+
+        int widthSize = MeasureSpec.getSize(widthMeasureSpec);
+        int heightSize = MeasureSpec.getSize(heightMeasureSpec);
+
+        if (heightMode == MeasureSpec.UNSPECIFIED)
+            heightSize = widthSize;
+
+        setMeasuredDimension(widthSize,heightSize);
+    }
+
     private float[] generatePath() {
         circlePath.reset();
         linePath.reset();
@@ -215,12 +229,14 @@ public class GraphView extends View {
             y = getPaddingTop() + textSize * 2.5f + (max - pts.get(i)) * yFactor;
             linePath.lineTo(x, y);
             thisRadius = radius;
-            if (Math.pow(clicked.x - x, 2) + Math.pow(clicked.y - y, 2) <= 1000){
+            if (clicked.x != -1 && Math.pow(clicked.x - x, 2) + Math.pow(clicked.y - y, 2) <= 1000){
                 point = pts.get(i);
                 thisRadius *= 2;
             }
             circlePath.addCircle(x, y, thisRadius, Path.Direction.CW);
         }
+
+        clicked.x = -1;
 
         return new float[]{max, min};
     }

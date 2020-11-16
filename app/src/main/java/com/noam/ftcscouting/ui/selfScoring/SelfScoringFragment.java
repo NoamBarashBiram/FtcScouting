@@ -53,6 +53,7 @@ public class SelfScoringFragment extends Fragment implements StaticSync.Notifiab
     private volatile boolean enabled = false, created = false, checkedLock = false ;
     private TextView selfScoringDisabled;
     private int matches = 0;
+    private volatile boolean attached = true;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -431,16 +432,18 @@ public class SelfScoringFragment extends Fragment implements StaticSync.Notifiab
                 .child(selfScoringEventName)
                 .child(team)
                 .updateChildren(update);
-
-        matches++;
-        mFragment.setMatchIndex(matches);
-        mFragment.init(selfScoringEventName, team, matches, holdsLock, matches + 1);
-        mFragment.setOnScoreChangeListener(this);
-        mFragment.updateUI();
+        if (attached) {
+            matches++;
+            mFragment.setMatchIndex(matches);
+            mFragment.init(selfScoringEventName, team, matches, holdsLock, matches + 1);
+            mFragment.setOnScoreChangeListener(this);
+            mFragment.updateUI();
+        }
     }
 
     @Override
     public void onDetach() {
+        attached = false;
         final Map<String, Object> autoChanges = mFragment.getChanges(FieldsConfig.auto),
                 telOpChanges = mFragment.getChanges(FieldsConfig.telOp),
                 penaltyChanges = mFragment.getChanges(FieldsConfig.penalty);

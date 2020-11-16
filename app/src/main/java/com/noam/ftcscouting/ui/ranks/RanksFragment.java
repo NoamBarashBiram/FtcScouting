@@ -30,7 +30,7 @@ import static com.noam.ftcscouting.database.FirebaseHandler.unFireKey;
 import static com.noam.ftcscouting.ui.teams.TeamsFragment.EXTRA_EVENT;
 import static com.noam.ftcscouting.ui.teams.TeamsFragment.eventString;
 
-public class RanksFragment extends Fragment implements StaticSync.Notifiable, View.OnClickListener {
+public class RanksFragment extends Fragment implements StaticSync.Notifiable {
 
     public static final String TAG = "RanksFragment";
 
@@ -41,7 +41,7 @@ public class RanksFragment extends Fragment implements StaticSync.Notifiable, Vi
     private ArrayList<ScoreCalculator> teams;
     private LayoutInflater inflater;
 
-    private static final int scoreHeight = spToPx(75);
+    private static final int scoreHeight = (int) (75 * Resources.getSystem().getDisplayMetrics().scaledDensity); // translate 75 sp to dp
     private View prevView;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -196,7 +196,7 @@ public class RanksFragment extends Fragment implements StaticSync.Notifiable, Vi
             TeamScore rank = ranks[i];
             final View team = inflater.inflate(R.layout.team, null);
 
-            team.setOnClickListener(this);
+            team.setOnClickListener(this::onClick);
 
             ((TextView) team.findViewById(R.id.rank)).setText(String.format("#%d", i + 1));
             ((TextView) team.findViewById(R.id.teamName)).setText(unFireKey(rank.key));
@@ -215,7 +215,6 @@ public class RanksFragment extends Fragment implements StaticSync.Notifiable, Vi
         return score.toString();
     }
 
-    @Override
     public void onClick(View v) {
         if (prevView != null) {
             final View finalPrev = prevView;
@@ -253,10 +252,6 @@ public class RanksFragment extends Fragment implements StaticSync.Notifiable, Vi
         v.startAnimation(anim2);
 
         prevView = score;
-    }
-
-    private static int spToPx(int sp) {
-        return (int) (sp * Resources.getSystem().getDisplayMetrics().scaledDensity);
     }
 
     // Class to hold the teams and their score

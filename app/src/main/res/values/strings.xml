@@ -40,7 +40,7 @@
     <string name="bool_avg_format">%d/%d, %.2f</string>
     <string name="int_avg_format">%.2f, %.2f</string>
     <string name="avg_example">Field Name: AVG Value, AVG Score</string>
-    <string name="avg_kind">%s AVG Score- %.2f</string>
+    <string name="avg_kind">%s AVG Score %.2f</string>
     <string name="avarage">Average</string>
     <string name="save">Save</string>
     <string name="save_conformation_msg">You have unsaved changes in this match.\nWould you like to save them?</string>
