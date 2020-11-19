@@ -13,20 +13,22 @@ import com.noam.ftcscouting.R;
 import com.noam.ftcscouting.utils.StaticSync;
 
 
-public class MyMatchesFragment extends Fragment implements StaticSync.Notifiable {
-
-    private View root;
+public class MyMatchesFragment extends Fragment {
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        root = inflater.inflate(R.layout.fragment_my_matches, container, false);
+        View root = inflater.inflate(R.layout.fragment_my_matches, container, false);
+        root.findViewById(R.id.addMatch).setOnClickListener(this::addMatch);
         return root;
+    }
+
+    private void addMatch(View view) {
+
     }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        StaticSync.register(this);
     }
 
     @Override
@@ -34,12 +36,11 @@ public class MyMatchesFragment extends Fragment implements StaticSync.Notifiable
         super.onActivityCreated(savedInstanceState);
     }
 
-    @Override
-    public void onNotified(Object message) {
+    private void updateUI() {
+
     }
 
-    private void updateUI() {
-        getActivity().runOnUiThread(() -> {
-        });
+    private void runOnUiThread(Runnable action){
+        getActivity().runOnUiThread(action);
     }
 }

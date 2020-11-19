@@ -70,24 +70,24 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
-            android:id="@+id/telOpTitle"
+            android:id="@+id/teleOpTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/half"
-            android:text="@string/telop_score"
+            android:text="@string/teleop_score"
             android:textSize="18sp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/autoTitle" />
 
         <TextView
-            android:id="@+id/telOpScore"
+            android:id="@+id/teleOpScore"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/half"
             android:text="0.00"
             android:textSize="18sp"
-            app:layout_constraintStart_toEndOf="@id/telOpTitle"
-            app:layout_constraintTop_toTopOf="@id/telOpTitle" />
+            app:layout_constraintStart_toEndOf="@id/teleOpTitle"
+            app:layout_constraintTop_toTopOf="@id/teleOpTitle" />
 
         <TextView
             android:id="@+id/penaltyTitle"
@@ -97,7 +97,7 @@
             android:text="@string/penalty"
             android:textSize="18sp"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/telOpTitle" />
+            app:layout_constraintTop_toBottomOf="@id/teleOpTitle" />
 
         <TextView
             android:id="@+id/penaltyScore"

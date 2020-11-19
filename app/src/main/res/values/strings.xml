@@ -3,51 +3,58 @@
     <string name="title_self_scoring">Self Scoring</string>
     <string name="title_events">Events</string>
     <string name="title_activity_login">Login</string>
-    <!--
-    This string is used for square devices and overridden by hello_world in
-    values-round/strings.xml for round devices.
-    -->
-    <string name="hello_world">Hello Square World!</string>
-    <string name="email_key">email</string>
-    <string name="password_key">password</string>
-    <string name="crash_report_key">crashreport</string>
-    <string name="crashlytics_explanation">This app is using Crashlytics - a service that reports data about app crashes\nThis data is completely anonymous, does not contain any kind of personal data and used only to increase the app stability.\nDo you agree to the use of the service?</string>
+    <string name="email_key" translatable="false">email</string>
+    <string name="password_key" translatable="false">password</string>
+    <string name="crash_report_key" translatable="false">crashreport</string>
     <string name="pause">Pause</string>
     <string name="start">Start</string>
     <string name="reset">Reset</string>
     <string name="resume">Resume</string>
     <string name="prompt_email">Email</string>
     <string name="prompt_password">Password</string>
-    <string name="action_sign_in">Sign in or register</string>
-    <string name="action_sign_in_short">Sign in</string>
-    <string name="invalid_username">Not a valid username</string>
     <string name="invalid_password">Password must be >5 characters</string>
     <string name="login_failed">"Login failed"</string>
     <string name="title_activity_event">Event</string>
     <string name="title_teams">Teams</string>
     <string name="title_my_matches">My Matches</string>
     <string name="title_ranks">Ranks</string>
-    <string name="title_activity_matches">MatchesActivity</string>
+    <string name="title_activity_matches">Matches</string>
     <string name="loading">Loading…</string>
-    <string name="plus">+</string>
-    <string name="minus">-</string>
+    <string name="plus" translatable="false">+</string>
+    <string name="minus" translatable="false">-</string>
     <string name="auto_score">Autonomous:</string>
-    <string name="telop_score">TelOp: </string>
+    <string name="teleop_score">TeleOp: </string>
     <string name="match_not_empty">Match is not empty</string>
     <string name="match_not_played_verification_message">You asked to mark this match as a match that was not played even though you have just edited it\nAre you sure you want to mark this match as one that was not played?</string>
     <string name="was_match_played">Was Match Played?</string>
     <string name="self_scoring_disabled_msg">Self scoring is disabled \n\nPlease enable it via the admin application</string>
-    <string name="bool_avg_format">%d/%d, %.2f</string>
-    <string name="int_avg_format">%.2f, %.2f</string>
-    <string name="avg_example">Field Name: AVG Value, AVG Score</string>
-    <string name="avg_kind">%s AVG Score %.2f</string>
     <string name="avarage">Average</string>
     <string name="save">Save</string>
     <string name="save_conformation_msg">You have unsaved changes in this match.\nWould you like to save them?</string>
     <string name="save_conformation_title">Unsaved Changes</string>
     <string name="auto">Autonomous</string>
-    <string name="telOp">TelOp</string>
+    <string name="teleOp">TeleOp</string>
     <string name="penalty">Penalty</string>
-    <string name="rank_format">#%d %s: %.2f</string>
+    <string name="rank_format" translatable="false">#%d %s: %.2f</string>
     <string name="title_stats">Statistics</string>
+    <string name="field_name">Field Name</string>
+    <string name="avg_val">AVG Value</string>
+    <string name="avg_score">AVG Score</string>
+    <string name="match_channel_name">Upcoming Matches</string>
+    <string name="match_channel_description">Here are notifications of upcoming matches are posted</string>
+    <string name="add_match">Add Match</string>
+    <string name="no_reminders">Click on the + sign to add a reminder</string>
+    <string name="reminder_edit_message">Click on a reminder to edit</string>
+    <string name="crashlytics_explanation">This app is using Crashlytics - a service that reports data about app crashes\n This data is completely anonymous, does not contain any kind of personal data and used only to increase the app stability. Do you agree to the use of the service?</string>
+    <string name="sorry_invalid_email">Sorry, but this is not a valid email</string>
+    <string name="invalid_email">Invalid Email</string>
+    <string name="sorry_invalid_password">Sorry, but this is not a valid password</string>
+    <string name="team_name">Team Name</string>
+    <string name="rank">Rank</string>
+    <string name="overall">Overall</string>
+    <string name="field_averages">Field Averages</string>
+    <string name="score">Score</string>
+    <string name="date_time">Date and Time</string>
+    <string name="point_format">point = %.2f</string>
+    <string name="countdown_format">In %d seconds</string>
 </resources>

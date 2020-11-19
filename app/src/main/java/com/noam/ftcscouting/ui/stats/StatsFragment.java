@@ -41,7 +41,7 @@ public class StatsFragment extends Fragment {
 
     private String teamName;
 
-    private CheckBox autoCheck, telOpCheck, penaltyCheck;
+    private CheckBox autoCheck, teleOpCheck, penaltyCheck;
 
     private GraphView graph;
 
@@ -65,7 +65,7 @@ public class StatsFragment extends Fragment {
         teamsLayout = root.findViewById(R.id.teams);
         graph = root.findViewById(R.id.graph);
         autoCheck = root.findViewById(R.id.autoCheck);
-        telOpCheck = root.findViewById(R.id.telOpCheck);
+        teleOpCheck = root.findViewById(R.id.teleOpCheck);
         penaltyCheck = root.findViewById(R.id.penaltyCheck);
         fieldAvg = root.findViewById(R.id.fieldAvg);
         overall = root.findViewById(R.id.overall);
@@ -79,9 +79,9 @@ public class StatsFragment extends Fragment {
             if (autoCheck.isEnabled())
                 autoCheck.setChecked(!autoCheck.isChecked());
         });
-        root.findViewById(R.id.telOpText).setOnClickListener(v -> {
-            if (telOpCheck.isEnabled())
-                telOpCheck.setChecked(!telOpCheck.isChecked());
+        root.findViewById(R.id.teleOpText).setOnClickListener(v -> {
+            if (teleOpCheck.isEnabled())
+                teleOpCheck.setChecked(!teleOpCheck.isChecked());
         });
         root.findViewById(R.id.penaltyText).setOnClickListener(v -> {
             if (penaltyCheck.isEnabled())
@@ -91,7 +91,7 @@ public class StatsFragment extends Fragment {
         // Set CheckBoxes to updateUI when toggled
         autoCheck.setOnCheckedChangeListener(
                 (buttonView, isChecked) -> new Thread(this::updateUI).start());
-        telOpCheck.setOnCheckedChangeListener(
+        teleOpCheck.setOnCheckedChangeListener(
                 (buttonView, isChecked) -> new Thread(this::updateUI).start());
         penaltyCheck.setOnCheckedChangeListener(
                 (buttonView, isChecked) -> new Thread(this::updateUI).start());
@@ -159,18 +159,18 @@ public class StatsFragment extends Fragment {
         getActivity().runOnUiThread(() -> {
             // Enable all checkboxes
             autoCheck.setEnabled(true);
-            telOpCheck.setEnabled(true);
+            teleOpCheck.setEnabled(true);
             penaltyCheck.setEnabled(true);
 
             // Make sure at least one checkbox is checked all the time
             // If only one is checked, disable it
             if (!autoCheck.isChecked()) {
-                if (!telOpCheck.isChecked()) {
+                if (!teleOpCheck.isChecked()) {
                     penaltyCheck.setEnabled(false);
                 } else if (!penaltyCheck.isChecked()) {
-                    telOpCheck.setEnabled(false);
+                    teleOpCheck.setEnabled(false);
                 }
-            } else if (!telOpCheck.isChecked() && !penaltyCheck.isChecked()) {
+            } else if (!teleOpCheck.isChecked() && !penaltyCheck.isChecked()) {
                 autoCheck.setEnabled(false);
             }
         });
@@ -189,18 +189,18 @@ public class StatsFragment extends Fragment {
             ((TextView) team.findViewById(R.id.teamName)).setText(format.format(matchDate));
 
             int auto = calculator.getScore(FieldsConfig.auto, i),
-                    telOp = calculator.getScore(FieldsConfig.telOp, i),
+                    teleOp = calculator.getScore(FieldsConfig.teleOp, i),
                     penalty = calculator.getScore(FieldsConfig.penalty, i);
 
             if (autoCheck.isChecked())
                 data[i] += auto;
-            if (telOpCheck.isChecked())
-                data[i] += telOp;
+            if (teleOpCheck.isChecked())
+                data[i] += teleOp;
             if (penaltyCheck.isChecked())
                 data[i] += penalty;
 
             ((TextView) team.findViewById(R.id.autoScore)).setText(String.format("%d", auto));
-            ((TextView) team.findViewById(R.id.telOpScore)).setText(String.format("%d", telOp));
+            ((TextView) team.findViewById(R.id.teleOpScore)).setText(String.format("%d", teleOp));
             ((TextView) team.findViewById(R.id.penaltyScore)).setText(String.format("%d", penalty));
 
             ((TextView) team.findViewById(R.id.rank)).setText(String.valueOf((int) data[i]));

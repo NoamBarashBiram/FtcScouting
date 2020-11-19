@@ -57,11 +57,11 @@ public class LoginActivity extends AppCompatActivity {
         String email = emailEditText.getText().toString();
         String password = passwordEditText.getText().toString();
         if (!email.matches("^[a-zA-Z0-9._\\-]+@[a-z]+(\\.[a-z]+)+$")) {
-            Toaster.toast(this, "Sorry, but this is not a valid email");
-            emailEditText.setError("Invalid Email");
+            Toaster.toast(this, getString(R.string.sorry_invalid_email));
+            emailEditText.setError(getString(R.string.invalid_email));
         } else if (password.length() <= 6 || !password.matches("[a-zA-Z0-9]+")) {
-            Toaster.toast(this, "Sorry, but this is not a valid password");
-            passwordEditText.setError("Invalid password");
+            Toaster.toast(this, getString(R.string.sorry_invalid_password));
+            passwordEditText.setError(getString(R.string.invalid_password));
         } else {
             tryLogin(email, password);
         }
@@ -75,6 +75,6 @@ public class LoginActivity extends AppCompatActivity {
                     .apply();
             StaticSync.send(LOGGED_IN);
             finish();
-        }).addOnFailureListener(ex -> Toaster.toast(this, "Login Failed"));
+        }).addOnFailureListener(ex -> Toaster.toast(this, getString(R.string.login_failed)));
     }
 }

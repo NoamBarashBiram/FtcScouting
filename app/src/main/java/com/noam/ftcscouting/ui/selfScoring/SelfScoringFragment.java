@@ -42,7 +42,7 @@ public class SelfScoringFragment extends Fragment implements StaticSync.Notifiab
     private TimerSection[] timerThings;
     private volatile boolean isTimerPlaying = false, isTimerPaused = false;
     private Button start, stop;
-    private TextView timerText, telOpScore, autoScore;
+    private TextView timerText, teleOpScore, autoScore;
     private Timer timer;
     private MediaPlayer player = new MediaPlayer();
     private int timerSection = -1, time = 0;
@@ -63,7 +63,7 @@ public class SelfScoringFragment extends Fragment implements StaticSync.Notifiab
         timerText = root.findViewById(R.id.timerText);
         selfScoringDisabled = root.findViewById(R.id.disabled);
         autoScore = root.findViewById(R.id.autoScore);
-        telOpScore = root.findViewById(R.id.telOpScore);
+        teleOpScore = root.findViewById(R.id.teleOpScore);
 
         start.setOnClickListener(this::startTimer);
         stop.setOnClickListener(this::stopTimer);
@@ -278,10 +278,10 @@ public class SelfScoringFragment extends Fragment implements StaticSync.Notifiab
     }
 
     @Override
-    public void onScoreChanged(int autoScore, int telOpScore) {
+    public void onScoreChanged(int autoScore, int teleOpScore) {
         runOnUiThread(() -> {
             this.autoScore.setText(String.valueOf(autoScore));
-            this.telOpScore.setText(String.valueOf(telOpScore));
+            this.teleOpScore.setText(String.valueOf(teleOpScore));
         });
     }
 
@@ -373,13 +373,13 @@ public class SelfScoringFragment extends Fragment implements StaticSync.Notifiab
 
     public void save(View v) {
         Map<String, Object> autoChanges = mFragment.getChanges(FieldsConfig.auto);
-        Map<String, Object> telOpChanges = mFragment.getChanges(FieldsConfig.telOp);
+        Map<String, Object> teleOpChanges = mFragment.getChanges(FieldsConfig.teleOp);
         Map<String, Object> penaltyChanges = mFragment.getChanges(FieldsConfig.penalty);
 
-        save(autoChanges, telOpChanges, penaltyChanges);
+        save(autoChanges, teleOpChanges, penaltyChanges);
     }
 
-    public void save(Map<String, Object> autoChanges, Map<String, Object> telOpChanges, Map<String, Object> penaltyChanges) {
+    public void save(Map<String, Object> autoChanges, Map<String, Object> teleOpChanges, Map<String, Object> penaltyChanges) {
         if (!enabled) return;
         long time = System.currentTimeMillis();
         String newMatches = FirebaseHandler.snapshot
@@ -399,12 +399,12 @@ public class SelfScoringFragment extends Fragment implements StaticSync.Notifiab
                     .getValue(new GenericTypeIndicator<Map<String, Object>>() {
                     });
         }
-        if (telOpChanges == null) {
-            telOpChanges = FirebaseHandler.snapshot
+        if (teleOpChanges == null) {
+            teleOpChanges = FirebaseHandler.snapshot
                     .child(eventsString)
                     .child(selfScoringEventName)
                     .child(team)
-                    .child(FieldsConfig.telOp)
+                    .child(FieldsConfig.teleOp)
                     .getValue(new GenericTypeIndicator<Map<String, Object>>() {
                     });
         }
@@ -422,7 +422,7 @@ public class SelfScoringFragment extends Fragment implements StaticSync.Notifiab
         Map<String, Object> update = new HashMap<>();
 
         update.put(FieldsConfig.matches, newMatches);
-        update.put(FieldsConfig.telOp, telOpChanges);
+        update.put(FieldsConfig.teleOp, teleOpChanges);
         update.put(FieldsConfig.auto, autoChanges);
         update.put(FieldsConfig.penalty, penaltyChanges);
         update.put("LOCK", lockLasts);
@@ -445,14 +445,14 @@ public class SelfScoringFragment extends Fragment implements StaticSync.Notifiab
     public void onDetach() {
         attached = false;
         final Map<String, Object> autoChanges = mFragment.getChanges(FieldsConfig.auto),
-                telOpChanges = mFragment.getChanges(FieldsConfig.telOp),
+                teleOpChanges = mFragment.getChanges(FieldsConfig.teleOp),
                 penaltyChanges = mFragment.getChanges(FieldsConfig.penalty);
 
-        if (autoChanges != null || telOpChanges != null || penaltyChanges != null) {
+        if (autoChanges != null || teleOpChanges != null || penaltyChanges != null) {
             new AlertDialog.Builder(getContext())
                     .setTitle(R.string.save_conformation_title)
                     .setMessage(R.string.save_conformation_msg)
-                    .setPositiveButton("Save", (dialog, which) -> save(autoChanges, telOpChanges, penaltyChanges))
+                    .setPositiveButton("Save", (dialog, which) -> save(autoChanges, teleOpChanges, penaltyChanges))
                     .setNegativeButton("Don't Save", null)
                     .create()
                     .show();

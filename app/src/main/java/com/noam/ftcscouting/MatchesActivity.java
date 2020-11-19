@@ -170,14 +170,11 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
                 lastXVal = event.getX();
             } else if (event.getAction() == MotionEvent.ACTION_UP) {
-                float dis = lastXVal - event.getX();
-                Log.e(TAG, "onTouch: " + dis);
+                int dis = (int) (lastXVal - event.getX());
                 if (dis > 300 && matchIndex < matches.length) {
-                    Log.e(TAG, "onTouch: Left");
                     // left
                     nextMatch(null);
-                } else if (dis < 300 && matchIndex > 0) {
-                    Log.e(TAG, "onTouch: Right");
+                } else if (dis < -300 && matchIndex > 0) {
                     // right
                     previousMatch(null);
                 }
@@ -300,14 +297,14 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
             return;
         }
         final Map<String, Object> autoChanges = mFragment.getChanges(FieldsConfig.auto),
-                telOpChanges = mFragment.getChanges(FieldsConfig.telOp),
+                teleOpChanges = mFragment.getChanges(FieldsConfig.teleOp),
                 penaltyChanges = mFragment.getChanges(FieldsConfig.penalty);
-        if (autoChanges != null || telOpChanges != null || penaltyChanges != null)
+        if (autoChanges != null || teleOpChanges != null || penaltyChanges != null)
             new AlertDialog.Builder(this)
                     .setTitle(R.string.save_conformation_title)
                     .setMessage(R.string.save_conformation_msg)
                     .setPositiveButton("Save", (dialog, which) -> {
-                        save(autoChanges, telOpChanges, penaltyChanges);
+                        save(autoChanges, teleOpChanges, penaltyChanges);
                         onConformation.run();
                     })
                     .setNegativeButton("Don't Save", ((dialog, which) -> onConformation.run()))
@@ -373,11 +370,11 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
     public void save(View v) {
         if (matchIndex < matches.length)
             save(mFragment.getChanges(FieldsConfig.auto),
-                    mFragment.getChanges(FieldsConfig.telOp),
+                    mFragment.getChanges(FieldsConfig.teleOp),
                     mFragment.getChanges(FieldsConfig.penalty));
     }
 
-    public void save(Map<String, Object> autoChanges, Map<String, Object> telOpChanges, Map<String, Object> penaltyChanges) {
+    public void save(Map<String, Object> autoChanges, Map<String, Object> teleOpChanges, Map<String, Object> penaltyChanges) {
         boolean changed = false;
 
         if (autoChanges != null) {
@@ -390,13 +387,13 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
                     .addOnFailureListener(e -> Toaster.toast(this, e));
             changed = true;
         }
-        if (telOpChanges != null) {
+        if (teleOpChanges != null) {
             FirebaseHandler.reference
                     .child(eventsString)
                     .child(event)
                     .child(team)
-                    .child(FieldsConfig.telOp)
-                    .updateChildren(telOpChanges)
+                    .child(FieldsConfig.teleOp)
+                    .updateChildren(teleOpChanges)
                     .addOnFailureListener(e -> Toaster.toast(this, e));
             changed = true;
         }
@@ -421,9 +418,9 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
 
     public void togglePlayed(View view) {
         Map<String, Object> autoChanges = mFragment.getChanges(FieldsConfig.auto);
-        Map<String, Object> telOpChanges = mFragment.getChanges(FieldsConfig.telOp);
+        Map<String, Object> teleOpChanges = mFragment.getChanges(FieldsConfig.teleOp);
 
-        if (autoChanges != null || telOpChanges != null) {
+        if (autoChanges != null || teleOpChanges != null) {
             playedCheckBox.setChecked(played);
             new AlertDialog.Builder(this)
                     .setTitle(R.string.match_not_empty)

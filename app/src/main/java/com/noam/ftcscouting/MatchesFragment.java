@@ -1,5 +1,6 @@
 package com.noam.ftcscouting;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -15,6 +16,8 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
+import android.widget.TableLayout;
+import android.widget.TableRow;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
@@ -44,16 +47,17 @@ public class MatchesFragment extends Fragment {
     private final HashMap<String, ArrayList<Pair<String, ? extends View>>> fieldObjects =
             new HashMap<String, ArrayList<Pair<String, ? extends View>>>() {{
                 put(FieldsConfig.auto, new ArrayList<>());
-                put(FieldsConfig.telOp, new ArrayList<>());
+                put(FieldsConfig.teleOp, new ArrayList<>());
                 put(FieldsConfig.penalty, new ArrayList<>());
             }};
     private volatile boolean enabled = false;
-    private LinearLayout rootView;
+    private LinearLayout matchLayout;
+    private TableLayout fieldTable;
     private String event, team;
     private OnScoreChangeListener listener;
     private ScoreCalculator calc;
 
-    public int autoScore, telOpScore;
+    public int autoScore, teleOpScore;
     volatile boolean constructedUI = false;
     private final static List<FieldsConfig.Field.Type> scorableTypes =
             Arrays.asList(
@@ -79,8 +83,10 @@ public class MatchesFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        rootView = (LinearLayout) inflater.inflate(R.layout.fragment_matches, container, false);
-        return rootView;
+        LinearLayout root = (LinearLayout) inflater.inflate(R.layout.fragment_matches, container, false);
+        fieldTable = root.findViewById(R.id.fieldTable);
+        matchLayout = root.findViewById(R.id.matchLayout);
+        return root;
     }
 
     public void init(String event, String team, int matchIndex, boolean enabled, int matchesLen) {
@@ -93,26 +99,80 @@ public class MatchesFragment extends Fragment {
     }
 
     public void showAvg() {
-        runOnUiThread(() -> rootView.removeAllViews());  // clear view before UI construction
-        TextView title;
-        TextView dataView;
+        runOnUiThread(() -> {
+            matchLayout.setVisibility(View.GONE);
+            fieldTable.setVisibility(View.VISIBLE);
+            fieldTable.removeAllViews();
+        });  // replace viewed view and clear it before UI construction
 
-        TextView example = new TextView(getContext());
-        example.setTextSize(18);
-        example.setText(R.string.avg_example);
-        example.setGravity(Gravity.CENTER_VERTICAL);
-        example.setTextColor(Color.BLACK);
+        TableRow titleRow = new TableRow(getContext());
+        titleRow.setBackgroundColor(Color.BLACK);
+        titleRow.setLayoutParams(
+                new TableLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        1)
+        );
 
-        rootView.addView(example);
+        TextView[] rowViews = new TextView[3];
+        rowViews[0] = new TextView(getContext());
+        rowViews[1] = new TextView(getContext());
+        rowViews[2] = new TextView(getContext());
+
+        rowViews[0].setText(R.string.field_name);
+        rowViews[1].setText(R.string.avg_val);
+        rowViews[2].setText(R.string.avg_score);
+        for (int i = 0; i < 3; i++) {
+            TableRow.LayoutParams params =
+                    new TableRow.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.MATCH_PARENT);
+            params.setMargins(1, 1, 1, 1);
+            rowViews[i].setLayoutParams(params);
+            rowViews[i].setPaddingRelative(8, 2, 8, 2);
+            rowViews[i].setTextSize(20);
+            rowViews[i].setTypeface(null, Typeface.BOLD);
+            rowViews[i].setGravity(Gravity.CENTER_VERTICAL);
+            rowViews[i].setTextColor(Color.BLACK);
+            rowViews[i].setBackgroundColor(Color.WHITE);
+            titleRow.addView(rowViews[i]);
+        }
+
+        runOnUiThread(() -> fieldTable.addView(titleRow));
 
         for (String kind : FieldsConfig.kinds) {
-            TextView kindView = new TextView(getContext());
-            kindView.setTextSize(22);
-            kindView.setTextColor(Color.BLACK);
-            kindView.setTypeface(null, Typeface.BOLD);
-            kindView.setPaddingRelative(0, 16, 0, 8);
+            TableRow kindRow = new TableRow(getContext());
 
-            runOnUiThread(() -> rootView.addView(kindView));
+            kindRow.setBackgroundColor(Color.BLACK);
+            kindRow.setLayoutParams(
+                    new TableLayout.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.WRAP_CONTENT,
+                            1)
+            );
+
+            rowViews[0] = new TextView(getContext());
+            rowViews[1] = new TextView(getContext());
+            rowViews[2] = new TextView(getContext());
+
+            rowViews[0].setText(kind);
+
+            for (int i = 0; i < 3; i++) {
+                TableRow.LayoutParams params =
+                        new TableRow.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                                ViewGroup.LayoutParams.MATCH_PARENT);
+                params.setMargins(1, 1, 1, 1);
+                rowViews[i].setLayoutParams(params);
+                rowViews[i].setPaddingRelative(8, 2, 8, 2);
+                rowViews[i].setTextSize(22);
+                rowViews[i].setTypeface(null, Typeface.BOLD);
+                rowViews[i].setGravity(Gravity.CENTER_VERTICAL);
+                rowViews[i].setTextColor(Color.BLACK);
+                rowViews[i].setBackgroundColor(Color.WHITE);
+                kindRow.addView(rowViews[i]);
+            }
+            TextView avgKind = rowViews[2];
+
+            runOnUiThread(() -> fieldTable.addView(kindRow));
 
             float totalKind = 0;
 
@@ -120,58 +180,74 @@ public class MatchesFragment extends Fragment {
                 if (!scorableTypes.contains(field.type))
                     continue;
 
-                final LinearLayout fieldLayout = new LinearLayout(getContext());
-                fieldLayout.setOrientation(LinearLayout.HORIZONTAL);
+                final TableRow row = new TableRow(getContext());
+                row.setBackgroundColor(Color.BLACK);
 
-                title = new TextView(getContext());
-                title.setTextSize(18);
-                title.setText(field.name + ":");
-                title.setGravity(Gravity.CENTER_VERTICAL);
-                title.setTextColor(Color.BLACK);
-                dataView = null;
+                rowViews = new TextView[3];
+                rowViews[0] = new TextView(getContext());
+                rowViews[1] = new TextView(getContext());
+                rowViews[2] = new TextView(getContext());
+
+                for (int i = 0; i < 3; i++) {
+                    TableRow.LayoutParams params =
+                            new TableRow.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                                    ViewGroup.LayoutParams.MATCH_PARENT);
+                    params.setMargins(1, 1, 1, 1);
+                    rowViews[i].setLayoutParams(params);
+                    rowViews[i].setPaddingRelative(8, 2, 8, 2);
+                    rowViews[i].setTextSize(18);
+                    rowViews[i].setTypeface(null, Typeface.BOLD);
+                    rowViews[i].setGravity(Gravity.CENTER_VERTICAL);
+                    rowViews[i].setTextColor(Color.BLACK);
+                    rowViews[i].setBackgroundColor(Color.WHITE);
+                    row.addView(rowViews[i]);
+                }
+
+                rowViews[0].setTextSize(18);
+                rowViews[0].setText(field.name);
+                rowViews[0].setGravity(Gravity.CENTER_VERTICAL);
+                rowViews[0].setTextColor(Color.BLACK);
+                String avgVal = "", avgScore = "";
 
                 if (field.type == FieldsConfig.Field.Type.BOOLEAN) {
                     float[] avg = calc.getAvg(kind, field.name);
-                    TextView text = new TextView(getContext());
-                    text.setText(String.format(getString(R.string.bool_avg_format), (int) (avg[0] * avg[2]), (int) avg[2], avg[1]));
-                    dataView = text;
+                    avgVal = String.format("%d/%d", (int) (avg[0] * avg[2]), (int) avg[2]);
+                    avgScore = String.format("%.2f", avg[1]);
                     totalKind += avg[1];
                 } else if (field.type == FieldsConfig.Field.Type.INTEGER) {
                     float[] avg = calc.getAvg(kind, field.name);
-                    TextView text = new TextView(getContext());
-                    text.setText(String.format(getString(R.string.int_avg_format), avg[0], avg[1]));
-                    dataView = text;
+                    avgVal = String.format("%.2f", avg[0]);
+                    avgScore = String.format("%.2f", avg[1]);
                     totalKind += avg[1];
                 } else if (field.type == FieldsConfig.Field.Type.TITLE) {
-                    title.setTypeface(null, Typeface.BOLD);
-                    title.setTextSize(20);
-                    title.setPaddingRelative(0, 16, 0, 8);
+                    rowViews[0].setTypeface(null, Typeface.BOLD);
+                    rowViews[0].setTextSize(20);
                 }
 
-                title.setEnabled(enabled);
-                fieldLayout.addView(title);
-                if (dataView != null) {
-                    dataView.setPaddingRelative(16, 0, 0, 0);
-                    dataView.setTextSize(18);
-                    dataView.setTextColor(Color.BLACK);
-                    fieldLayout.addView(dataView);
-                }
-                runOnUiThread(() -> rootView.addView(fieldLayout));
+                rowViews[0].setEnabled(enabled);
+                rowViews[1].setText(avgVal);
+                rowViews[2].setText(avgScore);
+                runOnUiThread(() -> fieldTable.addView(row));
+
             }
 
-            kindView.setText(String.format(getString(R.string.avg_kind), kind, totalKind));
+            float finalTotalKind = totalKind;
+            runOnUiThread(() -> avgKind.setText(String.format("%.2f", finalTotalKind)));
         }
-        constructedUI = false;
     }
 
     public void updateUI() {
+        runOnUiThread(() -> {
+            matchLayout.setVisibility(View.VISIBLE);
+            fieldTable.setVisibility(View.GONE);
+        });
         if (!constructedUI) {
             constructUI();
             constructedUI = true;
         } else {
             for (String kind : FieldsConfig.kinds) {
-                for (int i = 0; i < rootView.getChildCount(); i++) {
-                    View child = rootView.getChildAt(i);
+                for (int i = 0; i < matchLayout.getChildCount(); i++) {
+                    View child = matchLayout.getChildAt(i);
                     if (child instanceof TextView) {
                         runOnUiThread(() -> {
                             child.setEnabled(enabled);
@@ -189,7 +265,7 @@ public class MatchesFragment extends Fragment {
                     if (pair.second instanceof HorizontalNumberPicker) {
                         runOnUiThread(() -> ((HorizontalNumberPicker) pair.second).setValue(getValue(kind, pair.first)));
                     } else if (pair.second instanceof DependableCheckBox) {
-                        final boolean checked  = getValue(kind, pair.first).equals("1");
+                        final boolean checked = getValue(kind, pair.first).equals("1");
                         runOnUiThread(() -> ((DependableCheckBox) pair.second).setChecked(checked));
                     } else if (pair.second instanceof EditText) {
                         final String val = getValue(kind, pair.first);
@@ -213,7 +289,7 @@ public class MatchesFragment extends Fragment {
     }
 
     private void constructUI() {
-        runOnUiThread(() -> rootView.removeAllViews());  // clear view before UI construction
+        runOnUiThread(() -> matchLayout.removeAllViews());  // clear view before UI construction
         TextView title;
         View dataView;
         ConstraintSet constraintSet;
@@ -228,7 +304,7 @@ public class MatchesFragment extends Fragment {
             kindView.setTypeface(null, Typeface.BOLD);
             kindView.setPaddingRelative(0, 16, 0, 8);
 
-            runOnUiThread(() -> rootView.addView(kindView));
+            runOnUiThread(() -> matchLayout.addView(kindView));
 
             for (FieldsConfig.Field field : FirebaseHandler.configuration.fields(kind)) {
                 final ConstraintLayout fieldLayout = new ConstraintLayout(getContext());
@@ -324,7 +400,7 @@ public class MatchesFragment extends Fragment {
 
                     fieldObjects.get(kind).add(new Pair<>(field.name, dataView));
                 }
-                runOnUiThread(() -> rootView.addView(fieldLayout));
+                runOnUiThread(() -> matchLayout.addView(fieldLayout));
             }
 
             for (Pair<String, ? extends View> field : fieldObjects.get(kind)) {
@@ -350,7 +426,7 @@ public class MatchesFragment extends Fragment {
     private void computeScore() {
         Map<String, Integer> scores = new HashMap<String, Integer>() {{
             put(FieldsConfig.auto, 0);
-            put(FieldsConfig.telOp, 0);
+            put(FieldsConfig.teleOp, 0);
             put(FieldsConfig.penalty, 0);
         }};
         for (String kind : FieldsConfig.kinds) {
@@ -377,10 +453,10 @@ public class MatchesFragment extends Fragment {
         }
 
         autoScore = scores.get(FieldsConfig.auto);
-        telOpScore = scores.get(FieldsConfig.telOp);
+        teleOpScore = scores.get(FieldsConfig.teleOp);
 
         if (listener != null)
-            listener.onScoreChanged(autoScore, telOpScore);
+            listener.onScoreChanged(autoScore, teleOpScore);
     }
 
     private String getValue(String kind, String field) {
@@ -392,6 +468,7 @@ public class MatchesFragment extends Fragment {
     }
 
     public Map<String, Object> getChanges(@FieldsConfig.FieldKind String kind) {
+        if (matchIndex >= matchesLen) return null;
         HashMap<String, Object> changes = new HashMap<>();
         boolean isDifferent = false;
         for (Pair<String, ? extends View> field : fieldObjects.get(kind)) {
@@ -475,7 +552,7 @@ public class MatchesFragment extends Fragment {
         Activity ret = getActivity();
         if (ret == null) {
             Fragment parent = getParentFragment();
-            if (parent == null){
+            if (parent == null) {
                 return null;
             }
             return parent.getActivity();
@@ -492,6 +569,6 @@ public class MatchesFragment extends Fragment {
     }
 
     public interface OnScoreChangeListener {
-        void onScoreChanged(int autoScore, int telOpScore);
+        void onScoreChanged(int autoScore, int teleOpScore);
     }
 }

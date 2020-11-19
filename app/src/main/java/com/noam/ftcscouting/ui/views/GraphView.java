@@ -13,6 +13,8 @@ import android.view.View;
 
 import androidx.annotation.Nullable;
 
+import com.noam.ftcscouting.R;
+
 import java.util.ArrayList;
 
 public class GraphView extends View {
@@ -167,7 +169,7 @@ public class GraphView extends View {
         if (point != null) {
             canvas.rotate(90);
             textPaint.setTextAlign(Paint.Align.CENTER);
-            canvas.drawText(String.format("point = %.2f", point), (getWidth() - getPaddingRight() - getPaddingLeft()) / 2f, getPaddingTop() + textSize * 2, textPaint);
+            canvas.drawText(String.format(getContext().getString(R.string.point_format), point), (getWidth() - getPaddingRight() - getPaddingLeft()) / 2f, getPaddingTop() + textSize * 2, textPaint);
             textPaint.setTextAlign(Paint.Align.CENTER);
         }
     }

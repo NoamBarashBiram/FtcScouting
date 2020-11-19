@@ -9,7 +9,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/full"
-        app:layout_constraintEnd_toStartOf="@id/telOpContainer"
+        app:layout_constraintEnd_toStartOf="@id/teleOpContainer"
         app:layout_constraintHorizontal_weight="10"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -38,7 +38,7 @@
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/telOpContainer"
+        android:id="@+id/teleOpContainer"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         app:layout_constraintEnd_toStartOf="@id/penaltyContainer"
@@ -47,24 +47,24 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <CheckBox
-            android:id="@+id/telOpCheck"
+            android:id="@+id/teleOpCheck"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:checked="true"
-            app:layout_constraintBottom_toBottomOf="@id/telOpText"
+            app:layout_constraintBottom_toBottomOf="@id/teleOpText"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@id/telOpText" />
+            app:layout_constraintTop_toTopOf="@id/teleOpText" />
 
         <TextView
-            android:id="@+id/telOpText"
+            android:id="@+id/teleOpText"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:gravity="center_horizontal"
             android:paddingVertical="@dimen/half"
-            android:text="@string/telOp"
+            android:text="@string/teleOp"
             android:textSize="18sp"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/telOpCheck"
+            app:layout_constraintStart_toEndOf="@id/teleOpCheck"
             app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
@@ -76,7 +76,7 @@
         android:layout_marginEnd="@dimen/full"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_weight="7"
-        app:layout_constraintStart_toEndOf="@id/telOpContainer"
+        app:layout_constraintStart_toEndOf="@id/teleOpContainer"
         app:layout_constraintTop_toTopOf="parent">
 
         <CheckBox
@@ -126,7 +126,7 @@
                 android:paddingStart="@dimen/half"
                 android:paddingTop="@dimen/half"
                 android:paddingBottom="@dimen/half"
-                android:text="Rank"
+                android:text="@string/rank"
                 android:textSize="22sp"
                 android:textStyle="bold"
                 app:layout_constraintEnd_toStartOf="@id/guideline"
@@ -138,7 +138,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/half"
                 android:paddingStart="@dimen/half"
-                android:text="Team Name"
+                android:text="@string/team_name"
                 android:textSize="22sp"
                 android:textStyle="bold"
                 app:layout_constraintEnd_toEndOf="parent"

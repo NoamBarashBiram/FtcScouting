@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    tools:context=".LoginActivity">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/loginLayout"
@@ -18,7 +20,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/full"
-            android:hint="Email"
+            android:hint="@string/prompt_email"
             android:inputType="textEmailAddress"
             app:layout_constraintBottom_toTopOf="@+id/password_edittext"
             app:layout_constraintEnd_toEndOf="parent"
@@ -30,7 +32,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/full"
-            android:hint="Password"
+            android:hint="@string/prompt_password"
             android:inputType="textPassword"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/showBtn"
@@ -65,7 +67,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/full"
         android:onClick="tryLogin"
-        android:text="Login"
+        android:text="@string/title_activity_login"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

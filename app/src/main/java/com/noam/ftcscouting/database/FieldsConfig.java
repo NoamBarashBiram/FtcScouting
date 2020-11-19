@@ -14,7 +14,7 @@ public class FieldsConfig {
 
     public static final String TAG = "FieldsConfig";
     public static final String auto = "Autonomous",
-            telOp = "TelOp",
+            teleOp = "TeleOp",
             penalty = "Penalty",
             type = "type",
             unPlayed = "unplayed",
@@ -23,20 +23,20 @@ public class FieldsConfig {
             name = "name",
             placeholder = "PLACEHOLDER_DO_NOT_TOUCH";
 
-    public static final String[] kinds = new String[]{auto, telOp, penalty};
+    public static final String[] kinds = new String[]{auto, teleOp, penalty};
 
-    @StringDef({auto, telOp, penalty})
+    @StringDef({auto, teleOp, penalty})
     public @interface FieldKind {
     }
 
     private final ArrayList<Field>
             autoFields = new ArrayList<>(),
-            telOpFields = new ArrayList<>(),
+            teleOpFields = new ArrayList<>(),
             penaltyFields = new ArrayList<>();
 
     public HashMap<String, ArrayList<DependencyRule>> dependencies = new HashMap<String, ArrayList<DependencyRule>>() {{
         put(auto, new ArrayList<>());
-        put(telOp, new ArrayList<>());
+        put(teleOp, new ArrayList<>());
         put(penalty, new ArrayList<>());
     }};
 
@@ -181,8 +181,8 @@ public class FieldsConfig {
         if (auto.equals(fieldType)) {
             return autoFields;
         }
-        if (telOp.equals(fieldType)) {
-            return telOpFields;
+        if (teleOp.equals(fieldType)) {
+            return teleOpFields;
         }
         if (penalty.equals(fieldType)) {
             return penaltyFields;
@@ -207,8 +207,8 @@ public class FieldsConfig {
         return autoFields.get(index);
     }
 
-    public Field getTelOpField(String key) {
-        for (Field f : telOpFields) {
+    public Field getTeleOpField(String key) {
+        for (Field f : teleOpFields) {
             if (f.name.equals(key)) {
                 return f;
             }
@@ -216,11 +216,11 @@ public class FieldsConfig {
         return null;
     }
 
-    public Field getTelOpField(int index) {
-        if (index >= telOpFields.size()) {
+    public Field getTeleOpField(int index) {
+        if (index >= teleOpFields.size()) {
             return null;
         }
-        return telOpFields.get(index);
+        return teleOpFields.get(index);
     }
 
     public Field getPenaltyField(String key) {
@@ -243,8 +243,8 @@ public class FieldsConfig {
         if (auto.equals(fieldKind)) {
             return getAutoField(key);
         }
-        if (telOp.equals(fieldKind)) {
-            return getTelOpField(key);
+        if (teleOp.equals(fieldKind)) {
+            return getTeleOpField(key);
         }
 
         if (penalty.equals(fieldKind)) {
@@ -257,8 +257,8 @@ public class FieldsConfig {
         if (auto.equals(fieldKind)) {
             return getAutoField(index);
         }
-        if (telOp.equals(fieldKind)) {
-            return getTelOpField(index);
+        if (teleOp.equals(fieldKind)) {
+            return getTeleOpField(index);
         }
         if (penalty.equals(fieldKind)) {
             return getPenaltyField(index);

@@ -15,7 +15,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:enabled="false"
-            android:text="Overall"
+            android:text="@string/overall"
             app:layout_constraintEnd_toStartOf="@id/fieldAvg"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -24,7 +24,7 @@
             android:id="@+id/fieldAvg"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Field Averages"
+            android:text="@string/field_averages"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/overall"
             app:layout_constraintTop_toTopOf="parent" />
@@ -60,7 +60,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/full"
-            app:layout_constraintEnd_toStartOf="@id/telOpContainer"
+            app:layout_constraintEnd_toStartOf="@id/teleOpContainer"
             app:layout_constraintHorizontal_weight="10"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
@@ -89,7 +89,7 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/telOpContainer"
+            android:id="@+id/teleOpContainer"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             app:layout_constraintEnd_toStartOf="@id/penaltyContainer"
@@ -98,24 +98,24 @@
             app:layout_constraintTop_toTopOf="parent">
 
             <CheckBox
-                android:id="@+id/telOpCheck"
+                android:id="@+id/teleOpCheck"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checked="true"
-                app:layout_constraintBottom_toBottomOf="@id/telOpText"
+                app:layout_constraintBottom_toBottomOf="@id/teleOpText"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="@id/telOpText" />
+                app:layout_constraintTop_toTopOf="@id/teleOpText" />
 
             <TextView
-                android:id="@+id/telOpText"
+                android:id="@+id/teleOpText"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:gravity="center_horizontal"
                 android:paddingVertical="@dimen/half"
-                android:text="@string/telOp"
+                android:text="@string/teleOp"
                 android:textSize="18sp"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@id/telOpCheck"
+                app:layout_constraintStart_toEndOf="@id/teleOpCheck"
                 app:layout_constraintTop_toTopOf="parent" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
@@ -127,7 +127,7 @@
             android:layout_marginEnd="@dimen/full"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_weight="7"
-            app:layout_constraintStart_toEndOf="@id/telOpContainer"
+            app:layout_constraintStart_toEndOf="@id/teleOpContainer"
             app:layout_constraintTop_toTopOf="parent">
 
             <CheckBox
@@ -190,7 +190,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:background="@drawable/right_border"
-                            android:text="Score"
+                            android:text="@string/score"
                             android:textSize="22sp"
                             android:textStyle="bold"
                             app:layout_constraintEnd_toStartOf="@id/guideline"
@@ -201,7 +201,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:paddingStart="@dimen/half"
-                            android:text="Date and Time"
+                            android:text="@string/date_time"
                             android:textSize="22sp"
                             android:textStyle="bold"
                             app:layout_constraintEnd_toEndOf="parent"

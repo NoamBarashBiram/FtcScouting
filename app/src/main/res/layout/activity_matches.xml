@@ -30,7 +30,7 @@
             android:onClick="previousMatch"
             android:padding="12dp"
             android:rotation="180"
-            android:src="@drawable/play24"
+            android:src="@drawable/play"
             app:layout_constraintBottom_toBottomOf="@+id/match"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="@+id/match" />
@@ -42,7 +42,7 @@
             android:layout_marginEnd="@dimen/full"
             android:onClick="nextMatch"
             android:padding="12dp"
-            android:src="@drawable/play24"
+            android:src="@drawable/play"
             app:layout_constraintBottom_toBottomOf="@+id/match"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@+id/match" />

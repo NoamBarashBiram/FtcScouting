@@ -34,7 +34,7 @@ public class RanksFragment extends Fragment implements StaticSync.Notifiable {
 
     public static final String TAG = "RanksFragment";
 
-    private CheckBox autoCheck, telOpCheck, penaltyCheck;
+    private CheckBox autoCheck, teleOpCheck, penaltyCheck;
 
     private LinearLayout teamsLayout;
     private String event;
@@ -53,7 +53,7 @@ public class RanksFragment extends Fragment implements StaticSync.Notifiable {
         teamsLayout = root.findViewById(R.id.teams);
 
         autoCheck = root.findViewById(R.id.autoCheck);
-        telOpCheck = root.findViewById(R.id.telOpCheck);
+        teleOpCheck = root.findViewById(R.id.teleOpCheck);
         penaltyCheck = root.findViewById(R.id.penaltyCheck);
 
         // Set text near the CheckBoxes OnClickListener to toggle the CheckBox near it,
@@ -62,9 +62,9 @@ public class RanksFragment extends Fragment implements StaticSync.Notifiable {
             if (autoCheck.isEnabled())
                 autoCheck.setChecked(!autoCheck.isChecked());
         });
-        root.findViewById(R.id.telOpText).setOnClickListener(v -> {
-            if (telOpCheck.isEnabled())
-                telOpCheck.setChecked(!telOpCheck.isChecked());
+        root.findViewById(R.id.teleOpText).setOnClickListener(v -> {
+            if (teleOpCheck.isEnabled())
+                teleOpCheck.setChecked(!teleOpCheck.isChecked());
         });
         root.findViewById(R.id.penaltyText).setOnClickListener(v -> {
             if (penaltyCheck.isEnabled())
@@ -74,7 +74,7 @@ public class RanksFragment extends Fragment implements StaticSync.Notifiable {
         // Set CheckBoxes to updateUI when toggled
         autoCheck.setOnCheckedChangeListener(
                 (buttonView, isChecked) -> new Thread(this::updateUI).start());
-        telOpCheck.setOnCheckedChangeListener(
+        teleOpCheck.setOnCheckedChangeListener(
                 (buttonView, isChecked) -> new Thread(this::updateUI).start());
         penaltyCheck.setOnCheckedChangeListener(
                 (buttonView, isChecked) -> new Thread(this::updateUI).start());
@@ -153,36 +153,41 @@ public class RanksFragment extends Fragment implements StaticSync.Notifiable {
     private void updateUI() {
         // Enable all checkboxes
         autoCheck.setEnabled(true);
-        telOpCheck.setEnabled(true);
+        teleOpCheck.setEnabled(true);
         penaltyCheck.setEnabled(true);
 
         // Make sure at least one checkbox is checked all the time
         // If only one is checked, disable it
         if (!autoCheck.isChecked()) {
-            if (!telOpCheck.isChecked()) {
+            if (!teleOpCheck.isChecked()) {
                 penaltyCheck.setEnabled(false);
             } else if (!penaltyCheck.isChecked()) {
-                telOpCheck.setEnabled(false);
+                teleOpCheck.setEnabled(false);
             }
-        } else if (!telOpCheck.isChecked() && !penaltyCheck.isChecked()) {
+        } else if (!teleOpCheck.isChecked() && !penaltyCheck.isChecked()) {
             autoCheck.setEnabled(false);
         }
 
         // Create an array of Nodes containing TeamName as the key and average score as the value
-        // taking only the checked fieldKinds, Autonomous TelOp and Penalty
+        // taking only the checked fieldKinds, Autonomous TeleOp and Penalty
         TeamScore[] ranks = new TeamScore[teams.size()];
         for (int i = 0; i < ranks.length; i++) {
-            Float autoScore = null, telOpScore = null, penaltyScore = null;
+            float autoScore = teams.get(i).getAvg(FieldsConfig.auto),
+                    teleOpScore = teams.get(i).getAvg(FieldsConfig.teleOp),
+                    penaltyScore = teams.get(i).getAvg(FieldsConfig.penalty),
+                    totalScore = 0;
+
             if (autoCheck.isChecked()) {
-                autoScore = teams.get(i).getAvg(FieldsConfig.auto);
+                totalScore += autoScore;
             }
-            if (telOpCheck.isChecked()) {
-                telOpScore = teams.get(i).getAvg(FieldsConfig.telOp);
+            if (teleOpCheck.isChecked()) {
+                totalScore += teleOpScore;
             }
             if (penaltyCheck.isChecked()) {
-                penaltyScore = teams.get(i).getAvg(FieldsConfig.penalty);
+                totalScore += penaltyScore;
             }
-            ranks[i] = new TeamScore(teams.get(i).team, autoScore, telOpScore, penaltyScore);
+
+            ranks[i] = new TeamScore(teams.get(i).team, autoScore, teleOpScore, penaltyScore, totalScore);
         }
 
         // Sort the teams by their score
@@ -203,7 +208,7 @@ public class RanksFragment extends Fragment implements StaticSync.Notifiable {
 
 
             ((TextView) team.findViewById(R.id.autoScore)).setText(String.format("%.2f", rank.getAutoScore()));
-            ((TextView) team.findViewById(R.id.telOpScore)).setText(String.format("%.2f", rank.getTelOoScore()));
+            ((TextView) team.findViewById(R.id.teleOpScore)).setText(String.format("%.2f", rank.getTelOoScore()));
             ((TextView) team.findViewById(R.id.penaltyScore)).setText(String.format("%.2f", rank.getPenaltyScore()));
 
             runOnUiThread(() -> teamsLayout.addView(team));
@@ -257,21 +262,17 @@ public class RanksFragment extends Fragment implements StaticSync.Notifiable {
     // Class to hold the teams and their score
     private static class TeamScore {
         public final String key;
-        private final Float[] scores;
+        private final float[] scores;
+        private final float totalScore;
 
-        public TeamScore(String key, Float autoScore, Float telOpScore, Float penaltyScore) {
+        public TeamScore(String key, float autoScore, float teleOpScore, float penaltyScore, float totalScore) {
             this.key = key;
-            this.scores = new Float[]{autoScore, telOpScore, penaltyScore};
+            this.scores = new float[]{autoScore, teleOpScore, penaltyScore};
+            this.totalScore = totalScore;
         }
 
         public float getScore() {
-            float score = 0;
-            for (Float fieldScore : scores) {
-                if (fieldScore != null) {
-                    score += fieldScore;
-                }
-            }
-            return score;
+            return totalScore;
         }
 
         public Float getAutoScore() {
