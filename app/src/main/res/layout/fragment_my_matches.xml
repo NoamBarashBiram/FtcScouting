@@ -12,16 +12,17 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <LinearLayout
+            android:id="@+id/alarmsView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
             <TextView
-                android:gravity="center"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:gravity="center"
                 android:text="@string/no_reminders"
-                android:textSize="60sp"/>
+                android:textSize="60sp" />
 
         </LinearLayout>
     </ScrollView>
@@ -43,10 +44,10 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="@dimen/full"
         android:layout_marginRight="@dimen/full"
-        android:text="@string/reminder_edit_message"
         android:gravity="center"
-        android:textSize="20sp"
+        android:text="@string/reminder_edit_message"
         android:textColor="@android:color/black"
+        android:textSize="20sp"
         app:layout_constraintBottom_toBottomOf="@+id/addMatch"
         app:layout_constraintEnd_toStartOf="@+id/addMatch"
         app:layout_constraintStart_toStartOf="parent"

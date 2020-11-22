@@ -1,6 +1,5 @@
 package com.noam.ftcscouting;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -126,14 +125,14 @@ public class MatchesFragment extends Fragment {
             TableRow.LayoutParams params =
                     new TableRow.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                             ViewGroup.LayoutParams.MATCH_PARENT);
-            params.setMargins(1, 1, 1, 1);
+            params.setMargins(1, 1, i == 2 ? 2 : 1, 1);
             rowViews[i].setLayoutParams(params);
             rowViews[i].setPaddingRelative(8, 2, 8, 2);
             rowViews[i].setTextSize(20);
             rowViews[i].setTypeface(null, Typeface.BOLD);
             rowViews[i].setGravity(Gravity.CENTER_VERTICAL);
             rowViews[i].setTextColor(Color.BLACK);
-            rowViews[i].setBackgroundColor(Color.WHITE);
+            rowViews[i].setBackgroundColor(0xFFFAFAFA);
             titleRow.addView(rowViews[i]);
         }
 
@@ -160,14 +159,14 @@ public class MatchesFragment extends Fragment {
                 TableRow.LayoutParams params =
                         new TableRow.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                                 ViewGroup.LayoutParams.MATCH_PARENT);
-                params.setMargins(1, 1, 1, 1);
+                params.setMargins(1, 1, i == 2 ? 2 : 1, 1);
                 rowViews[i].setLayoutParams(params);
                 rowViews[i].setPaddingRelative(8, 2, 8, 2);
                 rowViews[i].setTextSize(22);
                 rowViews[i].setTypeface(null, Typeface.BOLD);
                 rowViews[i].setGravity(Gravity.CENTER_VERTICAL);
                 rowViews[i].setTextColor(Color.BLACK);
-                rowViews[i].setBackgroundColor(Color.WHITE);
+                rowViews[i].setBackgroundColor(0xFFFAFAFA);
                 kindRow.addView(rowViews[i]);
             }
             TextView avgKind = rowViews[2];
@@ -192,14 +191,14 @@ public class MatchesFragment extends Fragment {
                     TableRow.LayoutParams params =
                             new TableRow.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                                     ViewGroup.LayoutParams.MATCH_PARENT);
-                    params.setMargins(1, 1, 1, 1);
+                    params.setMargins(1, 1, i == 2 ? 2 : 1, 1);
                     rowViews[i].setLayoutParams(params);
                     rowViews[i].setPaddingRelative(8, 2, 8, 2);
                     rowViews[i].setTextSize(18);
                     rowViews[i].setTypeface(null, Typeface.BOLD);
                     rowViews[i].setGravity(Gravity.CENTER_VERTICAL);
                     rowViews[i].setTextColor(Color.BLACK);
-                    rowViews[i].setBackgroundColor(Color.WHITE);
+                    rowViews[i].setBackgroundColor(0xFFFAFAFA);
                     row.addView(rowViews[i]);
                 }
 
@@ -410,8 +409,9 @@ public class MatchesFragment extends Fragment {
                         if (rule.parent.equals(field.first)) {
                             for (Pair<String, ? extends View> possibleDependent : fieldObjects.get(kind)) {
                                 if (possibleDependent.first.equals(rule.dependent)) {
-                                    ((DependableCheckBox) field.second)
-                                            .addDependency(possibleDependent.second, rule.mode);
+                                    runOnUiThread(() ->
+                                            ((DependableCheckBox) field.second)
+                                                    .addDependency(possibleDependent.second, rule.mode));
                                     break;
                                 }
                             }

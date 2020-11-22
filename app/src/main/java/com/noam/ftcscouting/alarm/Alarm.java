@@ -19,7 +19,7 @@ import static com.noam.ftcscouting.alarm.AlarmReceiver.EXTRA_TEAM;
 public class Alarm {
 
     @PrimaryKey
-    public final long id;
+    public final int id;
 
     @ColumnInfo
     public final long time;
@@ -33,7 +33,7 @@ public class Alarm {
     @ColumnInfo
     public final String match;
 
-    public Alarm(long id, long time, @NonNull String event, @NonNull String team, @NonNull String match){
+    public Alarm(int id, long time, @NonNull String event, @NonNull String team, @NonNull String match){
         this.id = id;
         this.time = time;
         this.event = event;

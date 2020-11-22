@@ -47,10 +47,7 @@ public class FirebaseHandler {
                         }
                     }
                 }
-                if (last == null){
-                    StaticSync.send(DATABASE_OPENED);
-                }
-                if (configuration == null){
+                if (configuration == null) {
                     configuration = FieldsConfig.readConfig(snapshot.child(FieldsConfig.config));
                 }
                 last = FirebaseHandler.snapshot;
@@ -70,22 +67,25 @@ public class FirebaseHandler {
         changes.clear();
         iterate(new ArrayList<>(), snapshot, last);
         StaticSync.sync();
-        if (configUpdated){
+        if (configUpdated) {
             StaticSync.send(CONFIG_UPDATED);
             configuration = FieldsConfig.readConfig(snapshot.child(FieldsConfig.config));
+        }
+        if (last == null) {
+            StaticSync.send(DATABASE_OPENED);
         }
         computing = false;
     }
 
     private static void iterate(ArrayList<String> path, DataSnapshot snapshot, DataSnapshot last) {
-        if (path.size() > 0 && path.get(0).equals("config")){
+        if (path.size() > 0 && path.get(0).equals("config")) {
             configUpdated = true;
         }
         if (snapshot.hasChildren()) {
             for (DataSnapshot child : snapshot.getChildren()) {
                 ArrayList<String> tmp = new ArrayList<>(path);
                 tmp.add(child.getKey());
-                if (silent.contains(tmp)){
+                if (silent.contains(tmp)) {
                     silent.remove(tmp);
                     continue;
                 }
@@ -96,7 +96,7 @@ public class FirebaseHandler {
                     queue(tmp);
                 }
             }
-            if (last != null){
+            if (last != null) {
                 for (DataSnapshot child : last.getChildren()) {
                     if (!snapshot.hasChild(child.getKey())) {
                         ArrayList<String> tmp = new ArrayList<>(path);
@@ -107,7 +107,7 @@ public class FirebaseHandler {
                 }
             }
         } else {
-            if (silent.contains(path)){
+            if (silent.contains(path)) {
                 silent.remove(path);
                 return;
             }
@@ -118,7 +118,7 @@ public class FirebaseHandler {
         }
     }
 
-    private static void queue(ArrayList<String> change){
+    private static void queue(ArrayList<String> change) {
         changes.add(change);
         StaticSync.queue(change);
     }

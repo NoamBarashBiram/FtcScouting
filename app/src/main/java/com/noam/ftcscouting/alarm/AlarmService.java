@@ -22,6 +22,7 @@ import androidx.core.app.NotificationManagerCompat;
 
 import com.noam.ftcscouting.MainActivity;
 import com.noam.ftcscouting.R;
+import com.noam.ftcscouting.database.FirebaseHandler;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -114,9 +115,9 @@ public class AlarmService extends Service {
         Intent mainActivityIntent = new Intent(this, MainActivity.class);
         mainActivityIntent.putExtras(intent);
 
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, (int) id, mainActivityIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, (int) id, mainActivityIntent, PendingIntent.FLAG_CANCEL_CURRENT);
 
-        final String notifText = unFireKey(teamName) + ", " + matchName + " in " + unFireKey(eventName);
+        final String notifText = FirebaseHandler.unFireKey(teamName) + ", " + matchName + " in " + FirebaseHandler.unFireKey(eventName);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, MATCH_CHANNEL_ID)
                 .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
@@ -151,7 +152,7 @@ public class AlarmService extends Service {
                 builder.setSubText(String.format(getString(R.string.countdown_format), i[0]));
                 manager.notify((int) id, builder.build());
                 i[0]--;
-                if (i[0] == 0) {
+                if (i[0] == -1) {
                     Intent stopIntent = new Intent(AlarmService.this, StopAlarmReceiver.class);
                     stopIntent.putExtra(EXTRA_ID, id);
 
@@ -180,10 +181,6 @@ public class AlarmService extends Service {
         StopAlarmReceiver.services.put(id, this);
 
         return START_NOT_STICKY;
-    }
-
-    private String unFireKey(String str) {
-        return str;
     }
 
     @Nullable

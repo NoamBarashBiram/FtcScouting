@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import static com.noam.ftcscouting.database.FirebaseHandler.unFireKey;
-import static com.noam.ftcscouting.ui.teams.TeamsFragment.EXTRA_EVENT;
+import static com.noam.ftcscouting.alarm.AlarmReceiver.EXTRA_EVENT;
 import static com.noam.ftcscouting.ui.teams.TeamsFragment.eventString;
 
 public class RanksFragment extends Fragment implements StaticSync.Notifiable {

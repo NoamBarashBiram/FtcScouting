@@ -23,19 +23,17 @@ import com.noam.ftcscouting.utils.StaticSync;
 
 import java.util.ArrayList;
 
+import static com.noam.ftcscouting.alarm.AlarmReceiver.EXTRA_EVENT;
+import static com.noam.ftcscouting.alarm.AlarmReceiver.EXTRA_TEAM;
 import static com.noam.ftcscouting.database.FirebaseHandler.unFireKey;
 
 
 public class TeamsFragment extends Fragment implements StaticSync.Notifiable, TextWatcher {
 
-    public static final String
-            EXTRA_EVENT = "com.noam.ftcscouting.ui.myMatchesMyMatchesFragment.EXTRA_EVENT",
-            EXTRA_TEAM_NAME = "EXTRA_TEAM_NAME";
-
     public static final String eventString = "Events";
     private static final int BTN_HEIGHT = 200, BTN_TXT_SIZE = 18;
     private String event; 
-    private ArrayList<String> teams = null;
+    public static ArrayList<String> teams = null;
     private LinearLayout rightColumn, leftColumn;
     private EditText searchView;
     private String filter = ".*";
@@ -155,7 +153,7 @@ public class TeamsFragment extends Fragment implements StaticSync.Notifiable, Te
     private void openMatches(String teamName) {
         Intent intent = new Intent(getContext(), MatchesActivity.class);
         intent.putExtra(EXTRA_EVENT, event);
-        intent.putExtra(EXTRA_TEAM_NAME, teamName);
+        intent.putExtra(EXTRA_TEAM, teamName);
         startActivity(intent);
     }
 

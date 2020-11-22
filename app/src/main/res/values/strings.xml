@@ -57,4 +57,11 @@
     <string name="date_time">Date and Time</string>
     <string name="point_format">point = %.2f</string>
     <string name="countdown_format">In %d seconds</string>
+    <string name="no">No</string>
+    <string name="yes">Yes</string>
+    <string name="agree">I Agree</string>
+    <string name="do_not_agree">I Do Not</string>
+    <string name="battery_optimization_msg">In order to use reminders, this app needs your permission to run in the background and send you notifications in the right time.\nWill you give us your permission? If you do not, reminders of matches will not always arrive</string>
+    <string name="accepts_optimization">optimization acceptance</string>
+    <string name="miui_battery_saver_msg">You have a Xiaomi device, and those have MIUI Battery saver, which disables our Match Reminders feature. \nIn oder for this feature to work on your phone, please change the MIUI Battery Saver setting for this app to No Restrictions.\nWould you like to open settings?</string>
 </resources>

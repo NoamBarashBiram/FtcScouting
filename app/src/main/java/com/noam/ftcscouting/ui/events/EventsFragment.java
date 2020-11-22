@@ -20,11 +20,11 @@ import com.google.firebase.database.DataSnapshot;
 import com.noam.ftcscouting.EventActivity;
 import com.noam.ftcscouting.R;
 import com.noam.ftcscouting.database.FirebaseHandler;
-import com.noam.ftcscouting.ui.teams.TeamsFragment;
 import com.noam.ftcscouting.utils.StaticSync;
 
 import java.util.ArrayList;
 
+import static com.noam.ftcscouting.alarm.AlarmReceiver.EXTRA_EVENT;
 import static com.noam.ftcscouting.database.FirebaseHandler.unFireKey;
 
 
@@ -103,7 +103,7 @@ public class EventsFragment extends Fragment implements StaticSync.Notifiable, T
     private void openEvent(View v) {
         Button btn = (Button) v;
         Intent i = new Intent(getContext(), EventActivity.class);
-        i.putExtra(TeamsFragment.EXTRA_EVENT, FirebaseHandler.unFireKey(btn.getText()));
+        i.putExtra(EXTRA_EVENT, FirebaseHandler.unFireKey(btn.getText()));
         startActivity(i);
     }
 

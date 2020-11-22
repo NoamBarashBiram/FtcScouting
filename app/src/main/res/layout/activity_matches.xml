@@ -85,6 +85,7 @@
             <fragment
                 android:id="@+id/fragmentView"
                 android:name="com.noam.ftcscouting.MatchesFragment"
+                android:layout_marginHorizontal="2dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 

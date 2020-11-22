@@ -5,7 +5,6 @@ import android.animation.ObjectAnimator;
 import android.app.AlertDialog;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.CheckBox;
@@ -16,9 +15,9 @@ import androidx.annotation.NonNull;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.fragment.app.Fragment;
 
+import com.noam.ftcscouting.alarm.AlarmReceiver;
 import com.noam.ftcscouting.database.FieldsConfig;
 import com.noam.ftcscouting.database.FirebaseHandler;
-import com.noam.ftcscouting.ui.teams.TeamsFragment;
 import com.noam.ftcscouting.utils.StaticSync;
 import com.noam.ftcscouting.utils.Toaster;
 
@@ -123,8 +122,8 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
     private void init() {
         StaticSync.register(this);
 
-        event = getIntent().getStringExtra(TeamsFragment.EXTRA_EVENT);
-        team = getIntent().getStringExtra(TeamsFragment.EXTRA_TEAM_NAME);
+        event = getIntent().getStringExtra(AlarmReceiver.EXTRA_EVENT);
+        team = getIntent().getStringExtra(AlarmReceiver.EXTRA_TEAM);
         matches = FirebaseHandler.snapshot
                 .child(eventsString)
                 .child(event)
@@ -132,6 +131,16 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
                 .child("matches")
                 .getValue(String.class)
                 .split(";");
+
+        if (getIntent().hasExtra(AlarmReceiver.EXTRA_MATCH)) {
+            String matchName = getIntent().getStringExtra(AlarmReceiver.EXTRA_MATCH);
+            for (int i = 0; i < matches.length; i++) {
+                if (matches[i].equals(matchName)) {
+                    matchIndex = i;
+                    break;
+                }
+            }
+        }
 
         played = isPlayed();
 
@@ -417,6 +426,7 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
     }
 
     public void togglePlayed(View view) {
+        if (!playedCheckBox.isEnabled()) return;
         Map<String, Object> autoChanges = mFragment.getChanges(FieldsConfig.auto);
         Map<String, Object> teleOpChanges = mFragment.getChanges(FieldsConfig.teleOp);
 
@@ -425,8 +435,8 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
             new AlertDialog.Builder(this)
                     .setTitle(R.string.match_not_empty)
                     .setMessage(R.string.match_not_played_verification_message)
-                    .setNegativeButton("No", null)
-                    .setPositiveButton("Yes", ((dialog, which) -> togglePlayed()))
+                    .setNegativeButton(R.string.no, null)
+                    .setPositiveButton(R.string.yes, ((dialog, which) -> togglePlayed()))
                     .setCancelable(true)
                     .create()
                     .show();
