@@ -33,7 +33,7 @@ public class Alarm {
     @ColumnInfo
     public final String match;
 
-    public Alarm(int id, long time, @NonNull String event, @NonNull String team, @NonNull String match){
+    public Alarm(int id, long time, @NonNull String event, @NonNull String team, @NonNull String match) {
         this.id = id;
         this.time = time;
         this.event = event;
@@ -41,7 +41,7 @@ public class Alarm {
         this.match = match;
     }
 
-    public void schedule(Context context){
+    public void schedule(Context context) {
         schedule(context, (AlarmManager) context.getSystemService(Context.ALARM_SERVICE));
     }
 
@@ -53,7 +53,7 @@ public class Alarm {
         intent.putExtra(EXTRA_MATCH, match);
         intent.putExtra(EXTRA_ID, id);
 
-        PendingIntent alarmPending = PendingIntent.getBroadcast(context, (int) id, intent, 0);
+        PendingIntent alarmPending = PendingIntent.getBroadcast(context, id, intent, 0);
 
         manager.setExact(
                 AlarmManager.RTC_WAKEUP,
@@ -62,13 +62,13 @@ public class Alarm {
         );
     }
 
-    public void cancelAlarm(Context context){
+    public void cancelAlarm(Context context) {
         cancelAlarm(context, (AlarmManager) context.getSystemService(Context.ALARM_SERVICE));
     }
 
     public void cancelAlarm(Context context, AlarmManager manager) {
         Intent intent = new Intent(context, AlarmReceiver.class);
-        PendingIntent alarmPendingIntent = PendingIntent.getBroadcast(context, (int) id, intent, 0);
+        PendingIntent alarmPendingIntent = PendingIntent.getBroadcast(context, id, intent, 0);
         manager.cancel(alarmPendingIntent);
     }
 }

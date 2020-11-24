@@ -7,7 +7,6 @@ import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -31,9 +30,9 @@ import com.noam.ftcscouting.alarm.AlarmRepository;
 import com.noam.ftcscouting.database.FieldsConfig;
 import com.noam.ftcscouting.database.FirebaseHandler;
 import com.noam.ftcscouting.ui.teams.TeamsFragment;
-import com.noam.ftcscouting.utils.Toaster;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -45,11 +44,13 @@ import static com.noam.ftcscouting.ui.events.EventsFragment.eventsString;
 
 public class MyMatchesFragment extends Fragment {
 
+    private static final SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+    private static final String TAG = "MyMatchesFragment";
+
     private LinearLayout alarmsView;
     private String event;
     private SharedPreferences preferences;
-    private static final SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/YYYY HH:mm");
-    private static final String TAG = "MyMatchesFragment";
+    private final ArrayList<String> teams = new ArrayList<>();
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -62,9 +63,9 @@ public class MyMatchesFragment extends Fragment {
     private void addMatch(View view) {
         View dialogView = getLayoutInflater().inflate(R.layout.team_choosing_dialog, null);
         AlertDialog dialog = new AlertDialog.Builder(getContext())
-                .setTitle("Define Reminder")
+                .setTitle("Create a Reminder")
                 .setView(dialogView)
-                .setPositiveButton("Set Reminder", (dialog1, which) -> {
+                .setPositiveButton("Done", (dialog1, which) -> {
                 })
                 .setNegativeButton("Cancel", (dialog1, which) -> {
                 })
@@ -74,16 +75,16 @@ public class MyMatchesFragment extends Fragment {
 
         Spinner team = dialogView.findViewById(R.id.teamSpinner),
                 match = dialogView.findViewById(R.id.matchSpinner);
+
         team.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 if (position == parent.getCount()) return;
-                Log.e(TAG, "onItemSelected: " + TeamsFragment.teams.get(position));
                 match.setAdapter(new ArrayAdapter<>(getContext(),
                         android.R.layout.simple_spinner_dropdown_item,
                         FirebaseHandler.snapshot.child(eventsString)
                                 .child(event)
-                                .child(TeamsFragment.teams.get(position))
+                                .child(FirebaseHandler.fireKey((String) team.getSelectedItem()))
                                 .child(FieldsConfig.matches)
                                 .getValue(String.class)
                                 .split(";")
@@ -96,15 +97,10 @@ public class MyMatchesFragment extends Fragment {
             }
         });
 
-        team.setAdapter(new ArrayAdapter<String>(getContext(),
+        team.setAdapter(new ArrayAdapter<>(getContext(),
                 android.R.layout.simple_spinner_dropdown_item,
-                TeamsFragment.teams
-        ) {
-            @Override
-            public int getCount() {
-                return super.getCount() - 1;
-            }
-        });
+                teams
+        ));
 
         TimePicker picker = dialogView.findViewById(R.id.timePicker);
         picker.setIs24HourView(true);
@@ -113,24 +109,18 @@ public class MyMatchesFragment extends Fragment {
 
         Button saveBtn = dialog.getButton(DialogInterface.BUTTON_POSITIVE);
         saveBtn.setOnClickListener(v1 -> {
-            if (team.getSelectedItemPosition() == team.getCount() || match.getSelectedItem() == null) {
-                Toaster.toast(getContext(), "Please Select a team and a match");
-                return;
-            }
-            saveReminder((String) team.getSelectedItem(),
+            saveReminder(FirebaseHandler.fireKey((String) team.getSelectedItem()),
                     (String) match.getSelectedItem(),
                     parseTime(picker));
             dialog.dismiss();
         });
 
         dialog.getButton(DialogInterface.BUTTON_NEUTRAL)
-                .setOnClickListener(v1 -> {
-                    if (dialog.isShowing()) return;
-                    openDateDialog((String) team.getSelectedItem(),
-                            (String) match.getSelectedItem(),
-                            parseTime(picker),
-                            null);
-                });
+                .setOnClickListener(v1 ->
+                        openDateDialog((String) team.getSelectedItem(),
+                                (String) match.getSelectedItem(),
+                                parseTime(picker),
+                                null));
     }
 
     private long parseTime(TimePicker picker) {
@@ -199,6 +189,9 @@ public class MyMatchesFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         new Thread(this::updateUI).start();
+        for (String team : TeamsFragment.teams) {
+            teams.add(FirebaseHandler.unFireKey(team));
+        }
     }
 
     private void updateUI() {

@@ -8,7 +8,7 @@ import java.util.HashMap;
 
 public class StopAlarmReceiver extends BroadcastReceiver {
 
-    static final HashMap<Long, AlarmService> services = new HashMap<>();
+    static final HashMap<Integer, AlarmService> services = new HashMap<>();
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -16,7 +16,7 @@ public class StopAlarmReceiver extends BroadcastReceiver {
     }
 
     public static void remove(Intent intent, boolean postNewNotification) {
-        long id = intent.getLongExtra(AlarmReceiver.EXTRA_ID, -1);
+        int id = intent.getIntExtra(AlarmReceiver.EXTRA_ID, -1);
         if (services.containsKey(id)){
             services.get(id).stop(postNewNotification);
             services.remove(id);

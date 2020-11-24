@@ -60,7 +60,7 @@ public class AlarmService extends Service {
     }
 
     private Notification notificationNoAction;
-    private long id;
+    private int id;
 
     public static void createNotificationChannel(Context context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -98,7 +98,7 @@ public class AlarmService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         boolean deleted = false;
 
-        id = intent.getLongExtra(EXTRA_ID, -1);
+        id = intent.getIntExtra(EXTRA_ID, -1);
 
         if (repo == null) {
             deleted = true;
@@ -115,7 +115,7 @@ public class AlarmService extends Service {
         Intent mainActivityIntent = new Intent(this, MainActivity.class);
         mainActivityIntent.putExtras(intent);
 
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, (int) id, mainActivityIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, id, mainActivityIntent, PendingIntent.FLAG_CANCEL_CURRENT);
 
         final String notifText = FirebaseHandler.unFireKey(teamName) + ", " + matchName + " in " + FirebaseHandler.unFireKey(eventName);
 
@@ -140,7 +140,7 @@ public class AlarmService extends Service {
         builder.setSubText(String.format(getString(R.string.countdown_format), 60));
         builder.setPriority(NotificationCompat.PRIORITY_DEFAULT);
 
-        startForeground((int) id, builder.build());
+        startForeground(id, builder.build());
 
         NotificationManagerCompat manager = NotificationManagerCompat.from(this);
 
@@ -150,17 +150,17 @@ public class AlarmService extends Service {
             @Override
             public void run() {
                 builder.setSubText(String.format(getString(R.string.countdown_format), i[0]));
-                manager.notify((int) id, builder.build());
+                manager.notify(id, builder.build());
                 i[0]--;
                 if (i[0] == -1) {
                     Intent stopIntent = new Intent(AlarmService.this, StopAlarmReceiver.class);
                     stopIntent.putExtra(EXTRA_ID, id);
 
                     builder.setContentIntent(pendingIntent);
-                    builder.addAction(-1, "Stop", PendingIntent.getBroadcast(AlarmService.this, (int) id, stopIntent, 0));
+                    builder.addAction(-1, "Stop", PendingIntent.getBroadcast(AlarmService.this, id, stopIntent, 0));
                     builder.setSubText(null);
 
-                    manager.notify((int) id, builder.build());
+                    manager.notify(id, builder.build());
 
                     player.start();
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -198,7 +198,7 @@ public class AlarmService extends Service {
         stopForeground(true);
 
         if (postNewNotification) {
-            NotificationManagerCompat.from(this).notify((int) id, notificationNoAction);
+            NotificationManagerCompat.from(this).notify(id, notificationNoAction);
         }
     }
 }

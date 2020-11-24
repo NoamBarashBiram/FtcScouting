@@ -5,8 +5,8 @@ import java.util.HashMap;
 
 public class StaticSync {
     private static long id = 0;
-    private static HashMap<Long, Notifiable> objects = new HashMap<>();
-    private static ArrayList<Object> queue = new ArrayList<>();
+    private static final HashMap<Long, Notifiable> objects = new HashMap<>();
+    private static final ArrayList<Object> queue = new ArrayList<>();
 
     public static synchronized void send(final Object message){
         for (Long id: objects.keySet()){

@@ -25,6 +25,7 @@ import java.util.ArrayList;
 
 import static com.noam.ftcscouting.alarm.AlarmReceiver.EXTRA_EVENT;
 import static com.noam.ftcscouting.alarm.AlarmReceiver.EXTRA_TEAM;
+import static com.noam.ftcscouting.database.FirebaseHandler.fireKey;
 import static com.noam.ftcscouting.database.FirebaseHandler.unFireKey;
 
 

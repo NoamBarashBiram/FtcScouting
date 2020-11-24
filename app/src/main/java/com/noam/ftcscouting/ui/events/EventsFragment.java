@@ -103,7 +103,7 @@ public class EventsFragment extends Fragment implements StaticSync.Notifiable, T
     private void openEvent(View v) {
         Button btn = (Button) v;
         Intent i = new Intent(getContext(), EventActivity.class);
-        i.putExtra(EXTRA_EVENT, FirebaseHandler.unFireKey(btn.getText()));
+        i.putExtra(EXTRA_EVENT, FirebaseHandler.fireKey(btn.getText()));
         startActivity(i);
     }
 
