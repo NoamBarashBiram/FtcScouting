@@ -33,6 +33,9 @@ import static com.noam.ftcscouting.alarm.AlarmReceiver.EXTRA_ID;
 import static com.noam.ftcscouting.alarm.AlarmReceiver.EXTRA_MATCH;
 import static com.noam.ftcscouting.alarm.AlarmReceiver.EXTRA_TEAM;
 
+/**
+ * @author NoamBR
+ */
 public class MainActivity extends TitleSettableActivity implements StaticSync.Notifiable {
 
     public static String TAG = MainActivity.class.getSimpleName();
@@ -43,23 +46,29 @@ public class MainActivity extends TitleSettableActivity implements StaticSync.No
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         StaticSync.register(this);
+
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // setup bottom navigation panel
         BottomNavigationView navView = findViewById(R.id.nav_view);
-        // Passing each menu ID as a set of Ids because each
-        // menu should be considered as top level destinations.
         AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
                 R.id.navigation_events, R.id.navigation_self_scoring)
                 .build();
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(navView, navController);
+
         askForServices();
+
         new Thread(this::checkIntentAndAddChannel).start();
     }
 
     private void checkIntentAndAddChannel() {
+        /* This method checks if the intent supplied to this activity has extras which require it
+           to open MatchesActivity, and creates the upcoming matches NotificationChannel */
         Intent intent = getIntent();
         if (intent.hasExtra(EXTRA_EVENT) &&
                 intent.hasExtra(EXTRA_TEAM) &&
@@ -75,9 +84,13 @@ public class MainActivity extends TitleSettableActivity implements StaticSync.No
 
     private void askForServices() {
         if (preferences.contains(getString(R.string.crash_report_key))) {
+            // user has already chosen whether to use in the past, move on
             openLoginActivity();
-            FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(preferences.getBoolean(getString(R.string.crash_report_key), false));
+            FirebaseCrashlytics
+                    .getInstance()
+                    .setCrashlyticsCollectionEnabled(preferences.getBoolean(getString(R.string.crash_report_key), false));
         } else {
+            // an atomic boolean that indicates the user's selection
             AtomicBoolean enabled = new AtomicBoolean(false);
             new AlertDialog.Builder(this)
                     .setTitle("Crashlytics")
@@ -110,7 +123,8 @@ public class MainActivity extends TitleSettableActivity implements StaticSync.No
                         .setPositiveButton(R.string.yes, (dialog, which) -> {
                             openBatterySettings();
                             preferences.edit()
-                                    .putBoolean(getString(R.string.accepts_optimization), true);
+                                    .putBoolean(getString(R.string.accepts_optimization), true)
+                                    .apply();
                         }).create().show();
             }
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {

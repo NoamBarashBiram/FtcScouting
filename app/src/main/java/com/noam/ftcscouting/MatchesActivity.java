@@ -89,6 +89,7 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
         }
     };
     private float lastXVal;
+    private final int SWIPE_DISTANCE = 150;
 
     @Override
     public void onAttachFragment(@NonNull Fragment fragment) {
@@ -180,10 +181,10 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
                 lastXVal = event.getX();
             } else if (event.getAction() == MotionEvent.ACTION_UP) {
                 int dis = (int) (lastXVal - event.getX());
-                if (dis > 300 && matchIndex < matches.length) {
+                if (dis > SWIPE_DISTANCE && matchIndex < matches.length) {
                     // left
                     nextMatch(null);
-                } else if (dis < -300 && matchIndex > 0) {
+                } else if (dis < -SWIPE_DISTANCE && matchIndex > 0) {
                     // right
                     previousMatch(null);
                 }

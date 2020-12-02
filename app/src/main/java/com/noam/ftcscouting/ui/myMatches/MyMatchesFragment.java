@@ -161,16 +161,17 @@ public class MyMatchesFragment extends Fragment {
                 (dialog, which) -> {
                 }
         );
-        picker.setButton(DialogInterface.BUTTON_POSITIVE, "Save", (dialog, which) -> {
-            calendar.set(Calendar.YEAR, picker.getDatePicker().getYear());
-            calendar.set(Calendar.MONTH, picker.getDatePicker().getMonth());
-            calendar.set(Calendar.DAY_OF_MONTH, picker.getDatePicker().getDayOfMonth());
-            if (alarm != null) {
-                updateAlarm(alarm, calendar.getTimeInMillis());
-            } else {
-                saveReminder(team, match, calendar.getTimeInMillis());
-            }
-        });
+        picker.setButton(DialogInterface.BUTTON_POSITIVE, "Save",
+                (dialog, which) -> {
+                    calendar.set(Calendar.YEAR, picker.getDatePicker().getYear());
+                    calendar.set(Calendar.MONTH, picker.getDatePicker().getMonth());
+                    calendar.set(Calendar.DAY_OF_MONTH, picker.getDatePicker().getDayOfMonth());
+                    if (alarm != null) {
+                        updateAlarm(alarm, calendar.getTimeInMillis());
+                    } else {
+                        saveReminder(team, match, calendar.getTimeInMillis());
+                    }
+                });
         picker.setCancelable(false);
         picker.show();
     }
