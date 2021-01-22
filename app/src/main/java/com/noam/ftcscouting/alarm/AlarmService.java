@@ -23,7 +23,9 @@ import androidx.core.app.NotificationManagerCompat;
 import com.noam.ftcscouting.MainActivity;
 import com.noam.ftcscouting.R;
 import com.noam.ftcscouting.database.FirebaseHandler;
+import com.noam.ftcscouting.utils.Toaster;
 
+import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -40,27 +42,8 @@ public class AlarmService extends Service {
             GROUP_ID = "MATCHES_GROUP",
             MATCH_CHANNEL_ID = "UPCOMING_MATCHES_CHANNEL";
 
-    private final MediaPlayer player = new MediaPlayer();
-    private Vibrator vibrator;
+    private static final HashMap<Integer, NotificationAttributes> attributes = new HashMap<>();
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        am.setMode(AudioManager.MODE_NORMAL);
-        try {
-            player.setDataSource(getApplicationContext(), RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM));
-            player.setAudioStreamType(AudioManager.STREAM_ALARM);
-            player.prepare();
-            player.setLooping(true);
-        } catch (Exception ignored) {
-        }
-
-        vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
-    }
-
-    private Notification notificationNoAction;
-    private int id;
 
     public static void createNotificationChannel(Context context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -72,7 +55,6 @@ public class AlarmService extends Service {
             matchChannel.enableLights(true);
             matchChannel.setBypassDnd(true);
             matchChannel.setLockscreenVisibility(NotificationCompat.VISIBILITY_PUBLIC);
-            matchChannel.setVibrationPattern(new long[]{300, 300, 700, 700, 300});
             context.getSystemService(NotificationManager.class).createNotificationChannel(matchChannel);
         }
     }
@@ -96,9 +78,30 @@ public class AlarmService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        final MediaPlayer player = new MediaPlayer();
+        Vibrator vibrator;
+
+        AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        am.setMode(AudioManager.MODE_NORMAL);
+        try {
+            player.setDataSource(getApplicationContext(), RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM));
+            player.setAudioStreamType(AudioManager.STREAM_ALARM);
+            player.prepare();
+            player.setLooping(true);
+        } catch (Exception ignored) {
+        }
+
+        vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
+
+
+        int id;
         boolean deleted = false;
 
         id = intent.getIntExtra(EXTRA_ID, -1);
+
+
+        if (id == -1)
+            Toaster.toast(this, "Id is -1");
 
         if (repo == null) {
             deleted = true;
@@ -114,8 +117,9 @@ public class AlarmService extends Service {
 
         Intent mainActivityIntent = new Intent(this, MainActivity.class);
         mainActivityIntent.putExtras(intent);
+        mainActivityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, id, mainActivityIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, id, mainActivityIntent, 0);
 
         final String notifText = FirebaseHandler.unFireKey(teamName) + ", " + matchName + " in " + FirebaseHandler.unFireKey(eventName);
 
@@ -123,16 +127,13 @@ public class AlarmService extends Service {
                 .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true)
-                .setSound(RingtoneManager.getActualDefaultRingtoneUri(this, RingtoneManager.TYPE_NOTIFICATION))
                 .setContentIntent(pendingIntent)
                 .setContentTitle("A Match Is About To Begin")
                 .setContentText(notifText)
                 .setLights(Color.WHITE, 500, 500)
-                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                .setGroup(GROUP_ID)
-                .setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_CHILDREN);
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC);
 
-        notificationNoAction = builder.build();
+        attributes.put(id, new NotificationAttributes(player, vibrator, builder.build()));
 
         builder.setContentIntent(null);
 
@@ -180,7 +181,7 @@ public class AlarmService extends Service {
 
         StopAlarmReceiver.services.put(id, this);
 
-        return START_NOT_STICKY;
+        return START_STICKY;
     }
 
     @Nullable
@@ -189,16 +190,29 @@ public class AlarmService extends Service {
         return null;
     }
 
-    public void stop(boolean postNewNotification) {
-        if (player.isPlaying()) {
-            player.stop();
-            vibrator.cancel();
-            player.release();
+    public void stop(int id, boolean postNewNotification) {
+        NotificationAttributes attr = attributes.get(id);
+        if (attr.player.isPlaying()) {
+            attr.player.stop();
+            attr.vibrator.cancel();
         }
         stopForeground(true);
 
         if (postNewNotification) {
-            NotificationManagerCompat.from(this).notify(id, notificationNoAction);
+            NotificationManagerCompat.from(this).notify(id, attr.notification);
+        }
+    }
+
+    private static class NotificationAttributes {
+        private final MediaPlayer player;
+        private final Vibrator vibrator;
+        private final Notification notification;
+
+        NotificationAttributes(MediaPlayer player, Vibrator vibrator, Notification notification) {
+
+            this.player = player;
+            this.vibrator = vibrator;
+            this.notification = notification;
         }
     }
 }

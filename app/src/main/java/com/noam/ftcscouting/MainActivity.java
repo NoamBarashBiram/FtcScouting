@@ -33,9 +33,6 @@ import static com.noam.ftcscouting.alarm.AlarmReceiver.EXTRA_ID;
 import static com.noam.ftcscouting.alarm.AlarmReceiver.EXTRA_MATCH;
 import static com.noam.ftcscouting.alarm.AlarmReceiver.EXTRA_TEAM;
 
-/**
- * @author NoamBR
- */
 public class MainActivity extends TitleSettableActivity implements StaticSync.Notifiable {
 
     public static String TAG = MainActivity.class.getSimpleName();

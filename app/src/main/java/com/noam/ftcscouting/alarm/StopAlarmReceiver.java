@@ -18,7 +18,7 @@ public class StopAlarmReceiver extends BroadcastReceiver {
     public static void remove(Intent intent, boolean postNewNotification) {
         int id = intent.getIntExtra(AlarmReceiver.EXTRA_ID, -1);
         if (services.containsKey(id)){
-            services.get(id).stop(postNewNotification);
+            services.get(id).stop(id, postNewNotification);
             services.remove(id);
         }
     }
