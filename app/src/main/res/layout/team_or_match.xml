@@ -109,6 +109,18 @@
             app:layout_constraintStart_toEndOf="@id/penaltyTitle"
             app:layout_constraintTop_toTopOf="@id/penaltyTitle" />
 
+        <TextView
+            android:id="@+id/deleteMatch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/full"
+            android:text="❌"
+            android:textColor="@android:color/holo_red_dark"
+            android:textSize="20sp"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@id/penaltyScore"
+            app:layout_constraintEnd_toEndOf="parent" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

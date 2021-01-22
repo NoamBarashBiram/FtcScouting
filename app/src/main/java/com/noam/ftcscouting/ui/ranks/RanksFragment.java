@@ -199,7 +199,7 @@ public class RanksFragment extends Fragment implements StaticSync.Notifiable {
         // Add teams one by one, in their order since the array is sorted
         for (int i = 0; i < ranks.length; i++) {
             TeamScore rank = ranks[i];
-            final View team = inflater.inflate(R.layout.team, null);
+            final View team = inflater.inflate(R.layout.team_or_match, null);
 
             team.setOnClickListener(this::onClick);
 

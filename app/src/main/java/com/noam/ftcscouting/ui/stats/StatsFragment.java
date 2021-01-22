@@ -1,7 +1,9 @@
 package com.noam.ftcscouting.ui.stats;
 
+import android.app.AlertDialog;
 import android.content.res.Resources;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +19,7 @@ import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 
+import com.google.firebase.database.DataSnapshot;
 import com.noam.ftcscouting.MatchesFragment;
 import com.noam.ftcscouting.R;
 import com.noam.ftcscouting.database.FieldsConfig;
@@ -25,7 +28,11 @@ import com.noam.ftcscouting.database.ScoreCalculator;
 import com.noam.ftcscouting.ui.views.GraphView;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.noam.ftcscouting.database.FirebaseHandler.selfScoringEventName;
 import static com.noam.ftcscouting.ui.events.EventsFragment.eventsString;
@@ -42,19 +49,12 @@ public class StatsFragment extends Fragment {
     private String teamName;
 
     private CheckBox autoCheck, teleOpCheck, penaltyCheck;
-
     private GraphView graph;
-
     private ScoreCalculator calculator;
-
     private LinearLayout teamsLayout;
-
     private View prevView, fragmentView;
-
     private ConstraintLayout overallView;
-
     private MatchesFragment mFragment;
-
     private Button fieldAvg, overall;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -180,7 +180,7 @@ public class StatsFragment extends Fragment {
 
         float[] data = new float[matches];
         for (int i = 0; i < matches; i++) {
-            final View team = getLayoutInflater().inflate(R.layout.team, null);
+            final View team = getLayoutInflater().inflate(R.layout.team_or_match, null);
 
             team.setOnClickListener(this::onClick);
 
@@ -203,12 +203,73 @@ public class StatsFragment extends Fragment {
             ((TextView) team.findViewById(R.id.teleOpScore)).setText(String.format("%d", teleOp));
             ((TextView) team.findViewById(R.id.penaltyScore)).setText(String.format("%d", penalty));
 
+            TextView delete = team.findViewById(R.id.deleteMatch);
+            delete.setVisibility(View.VISIBLE);
+
+            int finalI = i;
+            delete.setOnClickListener(v -> openDeleteDialog(finalI));
+
             ((TextView) team.findViewById(R.id.rank)).setText(String.valueOf((int) data[i]));
             runOnUiThread(() -> teamsLayout.addView(team));
         }
 
         graph.clear();
         graph.addData(data);
+    }
+
+    private void openDeleteDialog(int matchIndex) {
+        new AlertDialog.Builder(getContext())
+                .setTitle("Deleting a match")
+                .setMessage("Are you sure you wanna delete this match?\n" +
+                        "This action cannot be undone.")
+                .setPositiveButton("Yes", (dialog, which) -> new Thread(() -> deleteSelfMatch(matchIndex)).start())
+                .setNegativeButton("Cancel", null)
+                .create()
+                .show();
+    }
+
+    private void deleteSelfMatch(int matchIndex) {
+        DataSnapshot matchesSnapshot =
+                FirebaseHandler.snapshot
+                        .child(eventsString)
+                        .child(selfScoringEventName)
+                        .child(teamName);
+
+        Map<String, Object> values = new HashMap<>();
+
+        for (String kind : FieldsConfig.kinds) {
+            Map<String, Object> kindValues = new HashMap<>();
+            for (DataSnapshot field : matchesSnapshot.child(kind).getChildren()) {
+                String oldValue = matchesSnapshot
+                        .child(kind)
+                        .child(field.getKey())
+                        .getValue(String.class);
+                kindValues.put(field.getKey(), removeValue(oldValue, matchIndex));
+            }
+            values.put(kind, kindValues);
+        }
+
+        String newMatches = removeValue(matchesSnapshot.child(FieldsConfig.matches).getValue(String.class), matchIndex);
+
+        values.put(FieldsConfig.matches, newMatches);
+
+        values.put(FieldsConfig.unPlayed, "");
+
+        FirebaseHandler.reference
+                .child(eventsString)
+                .child(selfScoringEventName)
+                .child(teamName)
+                .setValue(values);
+
+        matches--;
+
+        updateUI();
+    }
+
+    private String removeValue(String values, int index) {
+        ArrayList<String> valuesArr = new ArrayList<>(Arrays.asList(values.split(";")));
+        valuesArr.remove(index);
+        return TextUtils.join(";", valuesArr);
     }
 
     private String getMatchName(int index) {

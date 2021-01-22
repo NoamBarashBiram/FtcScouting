@@ -89,13 +89,14 @@ public class MatchesActivity extends TitleSettableActivity implements StaticSync
         }
     };
     private float lastXVal;
-    private final int SWIPE_DISTANCE = 150;
+    private final int SWIPE_DISTANCE = 300;
 
     @Override
     public void onAttachFragment(@NonNull Fragment fragment) {
         if (fragment instanceof MatchesFragment) {
             mFragment = (MatchesFragment) fragment;
-            if (matches != null) { // initialization has completed before fragment attachment
+            if (matches != null) {
+                // initialization has completed before fragment attachment
                 mFragment.init(event, team, matchIndex, holdsLock, matches.length);
                 initialized = true;
             }

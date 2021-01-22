@@ -102,7 +102,8 @@ public class MatchesFragment extends Fragment {
             matchLayout.setVisibility(View.GONE);
             fieldTable.setVisibility(View.VISIBLE);
             fieldTable.removeAllViews();
-        });  // replace viewed view and clear it before UI construction
+        });
+        // replace viewed view and clear it before UI construction
 
         TableRow titleRow = new TableRow(getContext());
         titleRow.setBackgroundColor(Color.BLACK);
@@ -121,13 +122,14 @@ public class MatchesFragment extends Fragment {
         rowViews[0].setText(R.string.field_name);
         rowViews[1].setText(R.string.avg_val);
         rowViews[2].setText(R.string.avg_score);
+
         for (int i = 0; i < 3; i++) {
             TableRow.LayoutParams params =
                     new TableRow.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                             ViewGroup.LayoutParams.MATCH_PARENT);
             params.setMargins(1, 1, i == 2 ? 2 : 1, 1);
             rowViews[i].setLayoutParams(params);
-            rowViews[i].setPaddingRelative(8, 2, 8, 2);
+            rowViews[i].setPaddingRelative(20, 20, 20, 20);
             rowViews[i].setTextSize(20);
             rowViews[i].setTypeface(null, Typeface.BOLD);
             rowViews[i].setGravity(Gravity.CENTER_VERTICAL);
@@ -161,7 +163,7 @@ public class MatchesFragment extends Fragment {
                                 ViewGroup.LayoutParams.MATCH_PARENT);
                 params.setMargins(1, 1, i == 2 ? 2 : 1, 1);
                 rowViews[i].setLayoutParams(params);
-                rowViews[i].setPaddingRelative(8, 2, 8, 2);
+                rowViews[i].setPaddingRelative(20, 20, 20, 20);
                 rowViews[i].setTextSize(22);
                 rowViews[i].setTypeface(null, Typeface.BOLD);
                 rowViews[i].setGravity(Gravity.CENTER_VERTICAL);
@@ -193,7 +195,7 @@ public class MatchesFragment extends Fragment {
                                     ViewGroup.LayoutParams.MATCH_PARENT);
                     params.setMargins(1, 1, i == 2 ? 2 : 1, 1);
                     rowViews[i].setLayoutParams(params);
-                    rowViews[i].setPaddingRelative(8, 2, 8, 2);
+                    rowViews[i].setPaddingRelative(20, 20, 20, 20);
                     rowViews[i].setTextSize(18);
                     rowViews[i].setTypeface(null, Typeface.BOLD);
                     rowViews[i].setGravity(Gravity.CENTER_VERTICAL);
