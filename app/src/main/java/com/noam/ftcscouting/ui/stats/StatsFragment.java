@@ -139,13 +139,17 @@ public class StatsFragment extends Fragment {
 
         calculator = new ScoreCalculator(FirebaseHandler.selfScoringEventName, teamName);
 
-        matches = FirebaseHandler.snapshot.child(eventsString)
+        String matchesString = FirebaseHandler.snapshot.child(eventsString)
                 .child(calculator.event)
                 .child(calculator.team)
                 .child(FieldsConfig.matches)
-                .getValue(String.class)
-                .split(";")
-                .length;
+                .getValue(String.class);
+
+        if (matchesString.equals("")){
+            matches = 0;
+        } else {
+            matches = matchesString.split(";").length;
+        }
 
         new Thread(() -> {
             mFragment.init(selfScoringEventName, teamName, 0, true, 1);
@@ -268,7 +272,11 @@ public class StatsFragment extends Fragment {
 
     private String removeValue(String values, int index) {
         ArrayList<String> valuesArr = new ArrayList<>(Arrays.asList(values.split(";")));
-        valuesArr.remove(index);
+        try {
+            valuesArr.remove(index);
+        } catch (IndexOutOfBoundsException e) {
+            e.printStackTrace();
+        }
         return TextUtils.join(";", valuesArr);
     }
 

@@ -26,14 +26,10 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
         emailEditText = findViewById(R.id.email_edittext);
         passwordEditText = findViewById(R.id.password_edittext);
-        preferences =  PreferenceManager.getDefaultSharedPreferences(this);
+        preferences = PreferenceManager.getDefaultSharedPreferences(this);
         String email = preferences.getString(getString(R.string.email_key), invalid);
         if (!invalid.equals(email)) {
-            String password = preferences.getString(getString(R.string.password_key), invalid);
-            if (!invalid.equals(password)) {
-                emailEditText.setText(email);
-                passwordEditText.setText(password);
-            }
+            emailEditText.setText(email);
         }
     }
 
@@ -71,7 +67,6 @@ public class LoginActivity extends AppCompatActivity {
         auth.signInWithEmailAndPassword(email, password).addOnSuccessListener(obj -> {
             preferences.edit()
                     .putString(getString(R.string.email_key), email)
-                    .putString(getString(R.string.password_key), password)
                     .apply();
             StaticSync.send(LOGGED_IN);
             finish();

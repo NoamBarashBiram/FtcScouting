@@ -479,27 +479,27 @@ public class MatchesFragment extends Fragment {
                     FirebaseHandler.configuration.getField(kind, field.first);
             if (oldValues.length != matchesLen) {
                 oldValues = Arrays.copyOf(oldValues, matchesLen);
-                for (int i = 0; i < matchesLen; i++) {
-                    if (oldValues[i] == null) {
-                        switch (f.type) {
-                            case CHOICE:
-                            case BOOLEAN:
-                                oldValues[i] = "0";
-                                break;
-                            case INTEGER:
-                                oldValues[i] = f.get(FieldsConfig.Field.min);
-                                break;
-                            default:
-                                oldValues[i] = "";
-                        }
+            }
+            for (int i = 0; i < matchesLen; i++) {
+                if (oldValues[i] == null || oldValues[i].equals("")) {
+                    switch (f.type) {
+                        case CHOICE:
+                        case BOOLEAN:
+                            oldValues[i] = "0";
+                            break;
+                        case INTEGER:
+                            oldValues[i] = f.get(FieldsConfig.Field.min);
+                            break;
+                        default:
+                            oldValues[i] = "";
                     }
                 }
             }
             String[] values = oldValues.clone();
             values[matchIndex] = getValue(field.second);
-            String newVal = TextUtils.join(";", values);
+            String newVal = TextUtils.join(";", values), oldVal = TextUtils.join(";", oldValues);
             changes.put(field.first, newVal);
-            isDifferent |= !newVal.equals(TextUtils.join(";", oldValues));
+            isDifferent |= !newVal.equals(oldVal);
         }
         return isDifferent ? changes : null;
     }

@@ -4,7 +4,6 @@
     <string name="title_events">Events</string>
     <string name="title_activity_login">Login</string>
     <string name="email_key" translatable="false">email</string>
-    <string name="password_key" translatable="false">password</string>
     <string name="crash_report_key" translatable="false">crashreport</string>
     <string name="pause">Pause</string>
     <string name="start">Start</string>

@@ -157,23 +157,11 @@ public class MainActivity extends TitleSettableActivity implements StaticSync.No
     }
 
     public void openLoginActivity() {
-        final Intent loginActivity = new Intent(MainActivity.this, LoginActivity.class);
-        String empty = "";
-        String email = preferences.getString(getString(R.string.email_key), empty);
-        if (empty.equals(email)) {
-            startActivity(loginActivity);
-            return;
-        }
-        String password = preferences.getString(getString(R.string.password_key), empty);
-        if (empty.equals(password)) {
+        if (FirebaseAuth.getInstance().getUid() == null) {
+            final Intent loginActivity = new Intent(MainActivity.this, LoginActivity.class);
             startActivity(loginActivity);
         } else {
-            FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
-                    .addOnSuccessListener(result -> FirebaseHandler.openDataBase())
-                    .addOnFailureListener(ex -> {
-                        Toaster.toast(MainActivity.this, getString(R.string.login_failed));
-                        startActivity(loginActivity);
-                    });
+            StaticSync.send(LoginActivity.LOGGED_IN);
         }
     }
 
