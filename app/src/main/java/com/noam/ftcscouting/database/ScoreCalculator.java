@@ -136,7 +136,10 @@ public class ScoreCalculator {
             }
         }
 
-        return new float[]{(float) totalValue / playedMatches, (float) score / playedMatches, playedMatches};
+        // if playedMatches is 0 than score and totalValue are 0 anyway so send 0 instead of NaN
+        int denominator = playedMatches == 0 ? 1 : playedMatches;
+
+        return new float[]{(float) totalValue / denominator, (float) score / denominator, playedMatches};
     }
 
     private String getValue(@FieldsConfig.FieldKind String kind, String field, int match) {
